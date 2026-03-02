@@ -7,8 +7,8 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Login',
-  description: 'Login to your account to continue'
+  title: 'Entrar',
+  description: 'Acesse sua conta para continuar'
 })
 
 const toast = useToast()
@@ -17,16 +17,16 @@ const fields = [{
   name: 'email',
   type: 'text' as const,
   label: 'Email',
-  placeholder: 'Enter your email',
+  placeholder: 'Digite seu email',
   required: true
 }, {
   name: 'password',
-  label: 'Password',
+  label: 'Senha',
   type: 'password' as const,
-  placeholder: 'Enter your password'
+  placeholder: 'Digite sua senha'
 }, {
   name: 'remember',
-  label: 'Remember me',
+  label: 'Lembrar de mim',
   type: 'checkbox' as const
 }]
 
@@ -34,19 +34,19 @@ const providers = [{
   label: 'Google',
   icon: 'i-simple-icons-google',
   onClick: () => {
-    toast.add({ title: 'Google', description: 'Login with Google' })
+    toast.add({ title: 'Google', description: 'Entrar com Google' })
   }
 }, {
   label: 'GitHub',
   icon: 'i-simple-icons-github',
   onClick: () => {
-    toast.add({ title: 'GitHub', description: 'Login with GitHub' })
+    toast.add({ title: 'GitHub', description: 'Entrar com GitHub' })
   }
 }]
 
 const schema = z.object({
-  email: z.email('Invalid email'),
-  password: z.string().min(8, 'Must be at least 8 characters')
+  email: z.email('Email inválido'),
+  password: z.string().min(8, 'A senha deve ter pelo menos 8 caracteres')
 })
 
 type Schema = z.output<typeof schema>
@@ -61,15 +61,15 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
     :fields="fields"
     :schema="schema"
     :providers="providers"
-    title="Welcome back"
+    title="Bem-vindo de volta"
     icon="i-lucide-lock"
     @submit="onSubmit"
   >
     <template #description>
-      Don't have an account? <ULink
+      Não tem uma conta? <ULink
         to="/signup"
         class="text-primary font-medium"
-      >Sign up</ULink>.
+      >Crie sua conta</ULink>.
     </template>
 
     <template #password-hint>
@@ -77,14 +77,14 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
         to="/"
         class="text-primary font-medium"
         tabindex="-1"
-      >Forgot password?</ULink>
+      >Esqueceu a senha?</ULink>
     </template>
 
     <template #footer>
-      By signing in, you agree to our <ULink
+      Ao entrar, você concorda com nossos <ULink
         to="/"
         class="text-primary font-medium"
-      >Terms of Service</ULink>.
+      >Termos de Serviço</ULink>.
     </template>
   </UAuthForm>
 </template>

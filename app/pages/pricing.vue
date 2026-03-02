@@ -17,11 +17,11 @@ const isYearly = ref('0')
 
 const items = ref([
   {
-    label: 'Monthly',
+    label: 'Mensal',
     value: '0'
   },
   {
-    label: 'Yearly',
+    label: 'Anual',
     value: '1'
   }
 ])
@@ -56,7 +56,7 @@ const items = ref([
           :key="index"
           v-bind="plan"
           :price="isYearly === '1' ? plan.price.year : plan.price.month"
-          :billing-cycle="isYearly === '1' ? '/year' : '/month'"
+          :billing-cycle="isYearly === '1' ? '/ano' : '/mês'"
         />
       </UPricingPlans>
     </UContainer>

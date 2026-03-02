@@ -1,63 +1,60 @@
-title: A plan for every need
-description: Our plans are designed to meet the requirements of both beginners and players. Get the right plan that suits you.
+title: Um plano para cada fase
+description: Comece simples e evolua conforme seu sistema cresce. Notas, hábitos e organização em um só lugar.
 seo:
-  title: Pricing
-  description: Choose the plan that's right for you.
+  title: Planos
+  description: Escolha o plano ideal para o seu Second Brain.
 navigation.icon: i-lucide-credit-card
 plans:
-  - title: Basic
-    description: A basic plan for individuals.
+  - title: Pessoal
+    description: Para quem quer capturar e organizar sem fricção.
     price:
-      month: $9.9
-      year: $99.9
+      month: R$ 19
+      year: R$ 190
     button:
-      label: Get Started
+      label: Começar
       color: neutral
       variant: subtle
     features:
-      - 1 GB Storage
-      - 1 Email Account
-      - 1 Domain
-      - 1 Website
-      - 1 Database
-      - 1 SSL Certificate
-      - 1 Support Ticket
-  - title: Standard
-    description: A standard plan for small teams.
+      - Notas ilimitadas
+      - Tags e coleções
+      - Caixa de entrada para capturas
+      - Busca rápida
+      - Check-in diário
+      - Rastreamento básico de hábitos
+  - title: Pro
+    description: Para monitorar hábitos com profundidade e criar consistência.
     price:
-      month: $19.9
-      year: $199.9
+      month: R$ 39
+      year: R$ 390
     highlight: true
     scale: true
     button:
-      label: Get Started
+      label: Assinar Pro
     features:
-      - 10 GB Storage
-      - 10 Email Accounts
-      - 10 Domains
-      - 10 Websites
-      - 10 Databases
-      - 10 SSL Certificates
-      - 10 Support Tickets
-  - title: Premium
-    description: A premium plan for large teams.
+      - Tudo do Pessoal
+      - Métricas semanais e mensais
+      - Heatmap de consistência
+      - Revisão semanal guiada
+      - Hábitos quantitativos (minutos, páginas, vezes)
+      - Regras flexíveis (dias de descanso / metas mínimas)
+  - title: Equipe
+    description: Para compartilhar contexto e manter alinhamento.
     price:
-      month: $29.9
-      year: $299.9
+      month: R$ 79
+      year: R$ 790
     button:
-      label: Get Started
+      label: Falar com a gente
       color: neutral
       variant: subtle
     features:
-      - 100 GB Storage
-      - 100 Email Accounts
-      - 100 Domains
-      - 100 Websites
-      - 100 Databases
-      - 100 SSL Certificates
-      - 100 Support Tickets
+      - Tudo do Pro
+      - Espaços compartilhados
+      - Permissões por membro
+      - Padrões de organização por equipe
+      - Histórico e auditoria básica
+      - Suporte prioritário
 logos:
-  title: Trusted by the world's best
+  title: Confiável para o dia a dia
   icons:
     - i-simple-icons-amazonaws
     - i-simple-icons-heroku
@@ -65,18 +62,18 @@ logos:
     - i-simple-icons-vercel
     - i-simple-icons-cloudflare
 faq:
-  title: Frequently asked questions
-  description: Culpa consectetur dolor pariatur commodo aliqua amet tempor nisi enim deserunt elit cillum.
+  title: Perguntas frequentes
+  description: Respostas rápidas para começar com confiança.
   items:
-    - label: Is this a secure service?
-      content: Qui sunt nostrud aliquip reprehenderit enim proident veniam magna aliquip velit occaecat eiusmod nisi deserunt sunt.
-    - label: How can I cancel my subscription?
-      content: Consectetur irure Lorem nostrud adipisicing aliqua mollit Lorem sit officia magna eiusmod cupidatat.
-    - label: How does the free trial work?
-      content: Quis officia commodo magna eu qui aliquip duis.
-    - label: Can I switch plans later?
-      content: Dolore irure ullamco dolore eu occaecat magna eiusmod dolor aliqua culpa labore.
-    - label: Do you offer refunds?
-      content: Duis mollit nostrud voluptate mollit Lorem dolore commodo veniam incididunt eiusmod.
-    - label: Do you offer support?
-      content: Aliqua sit nisi consequat pariatur Lorem minim irure qui.
+    - label: O Second Brain é um SaaS?
+      content: Sim. Você acessa seus dados de qualquer lugar e em qualquer dispositivo, sem se preocupar com infraestrutura.
+    - label: Meus dados ficam seguros?
+      content: O objetivo é manter uma arquitetura segura e server-side para integrações e banco (Supabase), com boas práticas de validação e acesso.
+    - label: Posso cancelar quando quiser?
+      content: Sim. Você pode cancelar a qualquer momento e manter o controle sobre seus dados.
+    - label: Posso mudar de plano depois?
+      content: Pode. Comece no Pessoal e evolua para o Pro/Equipe conforme sua necessidade.
+    - label: Como funcionam hábitos no Second Brain?
+      content: Hábitos são conectados a contexto (notas/reflexões). O foco é consistência e tendência, não perfeição.
+    - label: Vocês oferecem suporte?
+      content: Sim — com prioridade maior nos planos Pro e Equipe.

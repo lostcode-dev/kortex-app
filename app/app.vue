@@ -13,12 +13,12 @@ useHead({
     { rel: 'icon', href: '/favicon.ico' }
   ],
   htmlAttrs: {
-    lang: 'en'
+    lang: 'pt-BR'
   }
 })
 
 useSeoMeta({
-  titleTemplate: '%s - Nuxt SaaS template',
+  titleTemplate: '%s - Second Brain',
   ogImage: 'https://ui.nuxt.com/assets/templates/nuxt/saas-light.png',
   twitterImage: 'https://ui.nuxt.com/assets/templates/nuxt/saas-light.png',
   twitterCard: 'summary_large_image'
@@ -32,11 +32,11 @@ const { data: files } = useLazyAsyncData('search', () => queryCollectionSearchSe
 })
 
 const links = [{
-  label: 'Docs',
+  label: 'Documentação',
   icon: 'i-lucide-book',
   to: '/docs/getting-started'
 }, {
-  label: 'Pricing',
+  label: 'Planos',
   icon: 'i-lucide-credit-card',
   to: '/pricing'
 }, {
@@ -44,7 +44,7 @@ const links = [{
   icon: 'i-lucide-pencil',
   to: '/blog'
 }, {
-  label: 'Changelog',
+  label: 'Novidades',
   icon: 'i-lucide-history',
   to: '/changelog'
 }]

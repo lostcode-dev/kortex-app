@@ -1,34 +1,34 @@
 <script setup lang="ts">
 const columns = [{
-  label: 'Resources',
+  label: 'Recursos',
   children: [{
-    label: 'Help center'
+    label: 'Ajuda'
   }, {
-    label: 'Docs'
+    label: 'Documentação'
   }, {
     label: 'Roadmap'
   }, {
-    label: 'Changelog'
+    label: 'Novidades'
   }]
 }, {
-  label: 'Features',
+  label: 'Produto',
   children: [{
-    label: 'Affiliates'
+    label: 'Hábitos'
   }, {
-    label: 'Portal'
+    label: 'Notas'
   }, {
-    label: 'Jobs'
+    label: 'Coleções'
   }, {
-    label: 'Sponsors'
+    label: 'Tags'
   }]
 }, {
-  label: 'Company',
+  label: 'Empresa',
   children: [{
-    label: 'About'
+    label: 'Sobre'
   }, {
-    label: 'Pricing'
+    label: 'Planos'
   }, {
-    label: 'Careers'
+    label: 'Carreiras'
   }, {
     label: 'Blog'
   }]
@@ -43,8 +43,8 @@ function onSubmit() {
   loading.value = true
 
   toast.add({
-    title: 'Subscribed!',
-    description: 'You\'ve been subscribed to our newsletter.'
+    title: 'Inscrição confirmada!',
+    description: 'Você vai receber novidades do Second Brain por email.'
   })
 }
 </script>
@@ -63,21 +63,21 @@ function onSubmit() {
             <form @submit.prevent="onSubmit">
               <UFormField
                 name="email"
-                label="Subscribe to our newsletter"
+                label="Receba novidades do Second Brain"
                 size="lg"
               >
                 <UInput
                   v-model="email"
                   type="email"
                   class="w-full"
-                  placeholder="Enter your email"
+                  placeholder="Digite seu email"
                 >
                   <template #trailing>
                     <UButton
                       type="submit"
                       size="xs"
                       color="neutral"
-                      label="Subscribe"
+                      label="Inscrever"
                     />
                   </template>
                 </UInput>
@@ -90,32 +90,29 @@ function onSubmit() {
 
     <template #left>
       <p class="text-muted text-sm">
-        Built with Nuxt UI • © {{ new Date().getFullYear() }}
+        Second Brain • © {{ new Date().getFullYear() }}
       </p>
     </template>
 
     <template #right>
       <UButton
-        to="https://go.nuxt.com/discord"
-        target="_blank"
-        icon="i-simple-icons-discord"
-        aria-label="Nuxt on Discord"
+        to="/docs/getting-started"
+        icon="i-lucide-book-open"
+        aria-label="Abrir documentação"
         color="neutral"
         variant="ghost"
       />
       <UButton
-        to="https://go.nuxt.com/x"
-        target="_blank"
-        icon="i-simple-icons-x"
-        aria-label="Nuxt on X"
+        to="/changelog"
+        icon="i-lucide-history"
+        aria-label="Ver novidades"
         color="neutral"
         variant="ghost"
       />
       <UButton
-        to="https://github.com/nuxt-ui-templates/saas"
-        target="_blank"
-        icon="i-simple-icons-github"
-        aria-label="Nuxt UI on GitHub"
+        to="/blog"
+        icon="i-lucide-pencil"
+        aria-label="Abrir blog"
         color="neutral"
         variant="ghost"
       />

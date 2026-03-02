@@ -7,14 +7,14 @@ const toast = useToast()
 const open = ref(false)
 
 const links = [[{
-  label: 'Home',
+  label: 'Visão geral',
   icon: 'i-lucide-house',
   to: '/app',
   onSelect: () => {
     open.value = false
   }
 }, {
-  label: 'Inbox',
+  label: 'Caixa de entrada',
   icon: 'i-lucide-inbox',
   to: '/app/inbox',
   badge: '4',
@@ -22,70 +22,58 @@ const links = [[{
     open.value = false
   }
 }, {
-  label: 'Customers',
-  icon: 'i-lucide-users',
+  label: 'Notas',
+  icon: 'i-lucide-notebook-pen',
   to: '/app/customers',
   onSelect: () => {
     open.value = false
   }
 }, {
-  label: 'Settings',
+  label: 'Configurações',
   to: '/app/settings',
   icon: 'i-lucide-settings',
   defaultOpen: true,
   type: 'trigger',
   children: [{
-    label: 'General',
+    label: 'Geral',
     to: '/app/settings',
     exact: true,
     onSelect: () => {
       open.value = false
     }
   }, {
-    label: 'Members',
+    label: 'Membros',
     to: '/app/settings/members',
     onSelect: () => {
       open.value = false
     }
   }, {
-    label: 'Notifications',
+    label: 'Notificações',
     to: '/app/settings/notifications',
     onSelect: () => {
       open.value = false
     }
   }, {
-    label: 'Security',
+    label: 'Segurança',
     to: '/app/settings/security',
     onSelect: () => {
       open.value = false
     }
   }]
 }], [{
-  label: 'Feedback',
+  label: 'Enviar feedback',
   icon: 'i-lucide-message-circle',
-  to: 'https://github.com/nuxt-ui-templates/dashboard',
-  target: '_blank'
+  to: '/docs/getting-started'
 }, {
-  label: 'Help & Support',
+  label: 'Ajuda',
   icon: 'i-lucide-info',
-  to: 'https://github.com/nuxt-ui-templates/dashboard',
-  target: '_blank'
+  to: '/docs'
 }]] satisfies NavigationMenuItem[][]
 
 const groups = computed(() => [{
   id: 'links',
-  label: 'Go to',
+  label: 'Ir para',
   items: links.flat()
-}, {
-  id: 'code',
-  label: 'Code',
-  items: [{
-    id: 'source',
-    label: 'View page source',
-    icon: 'i-simple-icons-github',
-    to: `https://github.com/nuxt-ui-templates/dashboard/blob/main/app/pages${route.path === '/' ? '/index' : route.path}.vue`,
-    target: '_blank'
-  }]
 }])
 
 onMounted(async () => {
@@ -95,18 +83,18 @@ onMounted(async () => {
   }
 
   toast.add({
-    title: 'We use first-party cookies to enhance your experience on our website.',
+    title: 'Usamos cookies essenciais para melhorar sua experiência no Second Brain.',
     duration: 0,
     close: false,
     actions: [{
-      label: 'Accept',
+      label: 'Aceitar',
       color: 'neutral',
       variant: 'outline',
       onClick: () => {
         cookie.value = 'accepted'
       }
     }, {
-      label: 'Opt out',
+      label: 'Recusar',
       color: 'neutral',
       variant: 'ghost'
     }]
