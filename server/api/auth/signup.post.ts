@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { getSupabaseAnonClient } from '../../utils/supabase-anon'
 import { setAuthCookies } from '../../utils/auth-cookies'
+import { setAuthUserCookie, toAuthUser } from '../../utils/auth-user'
 
 const schema = z.object({
   name: z.string().min(1),
@@ -39,11 +40,19 @@ export default eventHandler(async (event) => {
     })
   }
 
-  if (data.session)
+  if (data.session) {
     setAuthCookies(event, data.session)
+    if (data.user) {
+      setAuthUserCookie(event, {
+        user: toAuthUser(data.user),
+        expiresAt: data.session.expires_at ?? null,
+        syncedAt: Date.now()
+      })
+    }
+  }
 
   return {
-    user: data.user,
-    session: data.session ? { expiresAt: data.session.expires_at } : null
+    user: data.user ? toAuthUser(data.user) : null,
+    session: data.session ? { expiresAt: data.session.expires_at ?? null } : null
   }
 })

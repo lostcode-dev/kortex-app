@@ -3,6 +3,8 @@ import { z } from 'zod'
 import type { Session } from '@supabase/supabase-js'
 import { clearOauthCodeVerifier, getOauthCodeVerifier } from '../../../utils/oauth-cookies'
 import { setAuthCookies } from '../../../utils/auth-cookies'
+import { getSupabaseAnonClient } from '../../../utils/supabase-anon'
+import { setAuthUserCookie, toAuthUser } from '../../../utils/auth-user'
 
 const querySchema = z.object({
   code: z.string().min(1).optional(),
@@ -89,6 +91,16 @@ export default eventHandler(async (event) => {
   } as unknown as Session
 
   setAuthCookies(event, session)
+
+  const supabase = getSupabaseAnonClient()
+  const { data: userData } = await supabase.auth.getUser(tokenResponse.access_token)
+  if (userData.user) {
+    setAuthUserCookie(event, {
+      user: toAuthUser(userData.user),
+      expiresAt,
+      syncedAt: Date.now()
+    })
+  }
 
   return sendRedirect(event, '/app', 302)
 })

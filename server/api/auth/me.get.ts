@@ -1,5 +1,6 @@
 import { getSupabaseAnonClient } from '../../utils/supabase-anon'
 import { getAccessTokenFromCookies, getRefreshTokenFromCookies, setAuthCookies } from '../../utils/auth-cookies'
+import { getAuthUserCookie, setAuthUserCookie, toAuthUser } from '../../utils/auth-user'
 
 export default eventHandler(async (event) => {
   const supabase = getSupabaseAnonClient()
@@ -8,8 +9,16 @@ export default eventHandler(async (event) => {
 
   if (accessToken) {
     const { data, error } = await supabase.auth.getUser(accessToken)
-    if (!error)
-      return { user: data.user }
+    if (!error && data.user) {
+      const existing = getAuthUserCookie(event)
+      setAuthUserCookie(event, {
+        user: toAuthUser(data.user),
+        expiresAt: existing?.expiresAt ?? null,
+        syncedAt: Date.now()
+      })
+
+      return { user: toAuthUser(data.user) }
+    }
   }
 
   if (!refreshToken)
@@ -29,5 +38,13 @@ export default eventHandler(async (event) => {
   if (userError)
     return { user: null }
 
-  return { user: userData.user }
+  if (userData.user) {
+    setAuthUserCookie(event, {
+      user: toAuthUser(userData.user),
+      expiresAt: refreshed.session.expires_at ?? null,
+      syncedAt: Date.now()
+    })
+  }
+
+  return { user: userData.user ? toAuthUser(userData.user) : null }
 })
