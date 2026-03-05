@@ -13,7 +13,10 @@ type InvoiceRow = {
   status: string | null
   currency: string | null
   total: number | null
+  amount_due: number | null
   amount_paid: number | null
+  paid: boolean | null
+  due_date: string | null
   hosted_invoice_url: string | null
   invoice_pdf: string | null
   invoice_number: string | null
@@ -41,8 +44,8 @@ export default eventHandler(async (event) => {
 
   const supabase = getSupabaseAdminClient()
   const { data, error, count } = await supabase
-    .from('invoices')
-    .select('stripe_invoice_id,status,currency,total,amount_paid,hosted_invoice_url,invoice_pdf,invoice_number,created,period_start,period_end', { count: 'exact' })
+    .from('stripe_invoices')
+    .select('stripe_invoice_id,status,currency,total,amount_due,amount_paid,paid,due_date,hosted_invoice_url,invoice_pdf,invoice_number,created,period_start,period_end', { count: 'exact' })
     .eq('user_id', user.id)
     .order('created', { ascending: false, nullsFirst: false })
     .range(from, to)

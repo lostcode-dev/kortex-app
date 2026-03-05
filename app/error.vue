@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app'
+import { pt_br } from '@nuxt/ui/locale'
 
 defineProps({
   error: {
@@ -10,7 +11,7 @@ defineProps({
 
 useHead({
   htmlAttrs: {
-    lang: 'en'
+    lang: 'pt-BR'
   }
 })
 
@@ -42,29 +43,31 @@ const links = [{
 </script>
 
 <template>
-  <div>
-    <AppHeader />
+  <UApp :locale="pt_br">
+    <div>
+      <AppHeader />
 
-    <UMain>
-      <UContainer>
-        <UPage>
-          <UError :error="error" />
-        </UPage>
-      </UContainer>
-    </UMain>
+      <UMain>
+        <UContainer>
+          <UPage>
+            <UError :error="error" />
+          </UPage>
+        </UContainer>
+      </UMain>
 
-    <AppFooter />
+      <AppFooter />
 
-    <ClientOnly>
-      <LazyUContentSearch
-        :files="files"
-        shortcut="meta_k"
-        :navigation="navigation"
-        :links="links"
-        :fuse="{ resultLimit: 42 }"
-      />
-    </ClientOnly>
+      <ClientOnly>
+        <LazyUContentSearch
+          :files="files"
+          shortcut="meta_k"
+          :navigation="navigation"
+          :links="links"
+          :fuse="{ resultLimit: 42 }"
+        />
+      </ClientOnly>
 
-    <UToaster />
-  </div>
+      <UToaster />
+    </div>
+  </UApp>
 </template>

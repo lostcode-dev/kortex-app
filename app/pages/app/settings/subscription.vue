@@ -9,6 +9,8 @@ const toast = useToast()
 
 // ─── Subscription ────────────────────────────────────────
 type Subscription = {
+  stripe_customer_id: string | null
+  stripe_subscription_id: string
   status: string
   price_id: string | null
   quantity: number | null
@@ -16,6 +18,17 @@ type Subscription = {
   current_period_end: string | null
   cancel_at_period_end: boolean | null
   canceled_at: string | null
+}
+
+enum StripeSubscriptionStatus {
+  Active = 'active',
+  Trialing = 'trialing',
+  PastDue = 'past_due',
+  Canceled = 'canceled',
+  Unpaid = 'unpaid',
+  Incomplete = 'incomplete',
+  IncompleteExpired = 'incomplete_expired',
+  Paused = 'paused'
 }
 
 type BillingStatusResponse = {
@@ -61,6 +74,46 @@ function formatDate(date: string | null): string {
   }
 }
 
+function getSubscriptionStatusLabel(status: string): string {
+  switch (status) {
+    case StripeSubscriptionStatus.Active:
+      return 'Ativa'
+    case StripeSubscriptionStatus.Trialing:
+      return 'Período de teste'
+    case StripeSubscriptionStatus.PastDue:
+      return 'Pagamento pendente'
+    case StripeSubscriptionStatus.Canceled:
+      return 'Cancelada'
+    case StripeSubscriptionStatus.Unpaid:
+      return 'Não paga'
+    case StripeSubscriptionStatus.Incomplete:
+      return 'Incompleta'
+    case StripeSubscriptionStatus.IncompleteExpired:
+      return 'Expirada'
+    case StripeSubscriptionStatus.Paused:
+      return 'Pausada'
+    default:
+      return status
+  }
+}
+
+function getSubscriptionStatusColor(status: string): 'success' | 'warning' | 'error' | 'neutral' {
+  switch (status) {
+    case StripeSubscriptionStatus.Active:
+    case StripeSubscriptionStatus.Trialing:
+      return 'success'
+    case StripeSubscriptionStatus.PastDue:
+    case StripeSubscriptionStatus.Incomplete:
+      return 'warning'
+    case StripeSubscriptionStatus.Canceled:
+    case StripeSubscriptionStatus.Unpaid:
+    case StripeSubscriptionStatus.IncompleteExpired:
+      return 'error'
+    default:
+      return 'neutral'
+  }
+}
+
 async function openPortal() {
   try {
     const { url } = await $fetch<{ url: string }>('/api/billing/portal', { method: 'POST' })
@@ -78,7 +131,10 @@ type InvoiceItem = {
   status: string | null
   currency: string | null
   total: number | null
+  amount_due: number | null
   amount_paid: number | null
+  paid: boolean | null
+  due_date: string | null
   hosted_invoice_url: string | null
   invoice_pdf: string | null
   invoice_number: string | null
@@ -124,10 +180,25 @@ const invoiceColumns = [
     header: 'Status'
   },
   {
+    accessorKey: 'paid' as const,
+    header: 'Pago',
+    cell: ({ row }: { row: { original: InvoiceItem } }) => {
+      const value = row.original.paid
+      return value == null ? '-' : (value ? 'Sim' : 'Não')
+    }
+  },
+  {
     accessorKey: 'total' as const,
     header: 'Total',
     cell: ({ row }: { row: { original: InvoiceItem } }) => {
       return formatMoney(row.original.total, row.original.currency)
+    }
+  },
+  {
+    accessorKey: 'amount_due' as const,
+    header: 'Em aberto',
+    cell: ({ row }: { row: { original: InvoiceItem } }) => {
+      return formatMoney(row.original.amount_due, row.original.currency)
     }
   },
   {
@@ -136,6 +207,13 @@ const invoiceColumns = [
     cell: ({ row }: { row: { original: InvoiceItem } }) => {
       if (!row.original.created) return '-'
       return new Date(row.original.created).toLocaleDateString('pt-BR')
+    }
+  },
+  {
+    accessorKey: 'due_date' as const,
+    header: 'Vencimento',
+    cell: ({ row }: { row: { original: InvoiceItem } }) => {
+      return formatDate(row.original.due_date)
     }
   },
   {
@@ -193,7 +271,7 @@ async function openInvoice(url: string | null) {
           />
 
           <UButton
-            v-if="data?.subscription && (data.subscription.status === 'active' || data.subscription.status === 'trialing') && !data.subscription.cancel_at_period_end"
+            v-if="data?.subscription && (data.subscription.status === StripeSubscriptionStatus.Active || data.subscription.status === StripeSubscriptionStatus.Trialing) && !data.subscription.cancel_at_period_end"
             label="Cancelar no fim do período"
             color="neutral"
             variant="ghost"
@@ -231,14 +309,44 @@ async function openInvoice(url: string | null) {
       <div v-else class="grid grid-cols-1 gap-3">
         <div class="flex items-center justify-between">
           <span class="text-sm text-muted">
+            Acesso
+          </span>
+          <UBadge
+            :color="data.hasAccess ? 'success' : 'warning'"
+            variant="subtle"
+          >
+            {{ data.hasAccess ? 'Liberado' : 'Restrito' }}
+          </UBadge>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-muted">
             Status
           </span>
           <UBadge
-            :color="data.subscription.status === 'active' || data.subscription.status === 'trialing' ? 'success' : 'neutral'"
+            :color="getSubscriptionStatusColor(data.subscription.status)"
             variant="subtle"
           >
-            {{ data.subscription.status }}
+            {{ getSubscriptionStatusLabel(data.subscription.status) }}
           </UBadge>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-muted">
+            Cliente (Stripe)
+          </span>
+          <span class="text-sm font-medium">
+            {{ data.subscription.stripe_customer_id || '-' }}
+          </span>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-muted">
+            Assinatura (Stripe)
+          </span>
+          <span class="text-sm font-medium">
+            {{ data.subscription.stripe_subscription_id || '-' }}
+          </span>
         </div>
 
         <div class="flex items-center justify-between">

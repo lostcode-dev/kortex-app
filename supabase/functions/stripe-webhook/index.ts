@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
       const item = subscription.items.data?.[0]
 
       await supabase
-        .from('subscriptions')
+        .from('stripe_subscriptions')
         .upsert({
           user_id: userId,
           stripe_customer_id: stripeCustomerId,
@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
       const periodEnd = line?.period?.end
 
       await supabase
-        .from('invoices')
+        .from('stripe_invoices')
         .upsert({
           user_id: userId,
           stripe_customer_id: stripeCustomerId,

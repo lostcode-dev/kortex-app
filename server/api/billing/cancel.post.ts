@@ -13,7 +13,7 @@ export default eventHandler(async (event) => {
   const supabase = getSupabaseAdminClient()
 
   const { data, error } = await supabase
-    .from('subscriptions')
+    .from('stripe_subscriptions')
     .select('stripe_subscription_id,status,cancel_at_period_end')
     .eq('user_id', user.id)
     .order('current_period_end', { ascending: false, nullsFirst: false })
