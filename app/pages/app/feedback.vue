@@ -11,6 +11,10 @@ import {
 
 definePageMeta({ layout: 'app' })
 
+useSeoMeta({
+  title: 'Feedback'
+})
+
 const {
   listData,
   listFetchStatus,

@@ -5,6 +5,10 @@ definePageMeta({
   layout: "app",
 });
 
+useSeoMeta({
+  title: "Configurações",
+});
+
 const links = [
   [
     {

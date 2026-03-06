@@ -6,6 +6,10 @@ definePageMeta({
   layout: 'app'
 })
 
+useSeoMeta({
+  title: 'Tarefas'
+})
+
 const {
   listData,
   listFetchStatus,

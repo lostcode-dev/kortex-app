@@ -5,6 +5,10 @@ definePageMeta({
   layout: 'app'
 })
 
+useSeoMeta({
+  title: 'Assinatura'
+})
+
 const isOpen = ref(true)
 
 const { data: page, status } = await useAsyncData(

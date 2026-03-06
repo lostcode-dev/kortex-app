@@ -6,6 +6,10 @@ definePageMeta({
   layout: 'app'
 })
 
+useSeoMeta({
+  title: 'Segurança'
+})
+
 const toast = useToast()
 
 const passwordSchema = z.object({

@@ -6,6 +6,10 @@ definePageMeta({
   layout: 'app'
 })
 
+useSeoMeta({
+  title: 'Metas'
+})
+
 const {
   listData,
   listFetchStatus,

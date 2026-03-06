@@ -2,6 +2,10 @@
 definePageMeta({
   layout: 'app'
 })
+
+useSeoMeta({
+  title: 'Ideias'
+})
 </script>
 
 <template>

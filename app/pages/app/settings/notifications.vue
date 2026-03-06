@@ -3,6 +3,10 @@ definePageMeta({
   layout: 'app'
 })
 
+useSeoMeta({
+  title: 'Notificações'
+})
+
 const toast = useToast()
 
 type NotificationPreferences = {

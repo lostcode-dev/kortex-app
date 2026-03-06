@@ -5,6 +5,10 @@ definePageMeta({
   layout: 'app'
 })
 
+useSeoMeta({
+  title: 'Assinatura'
+})
+
 const toast = useToast()
 
 // ─── Subscription ────────────────────────────────────────

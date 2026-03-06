@@ -6,6 +6,10 @@ definePageMeta({
   layout: 'app'
 })
 
+useSeoMeta({
+  title: 'Configurações'
+})
+
 const toast = useToast()
 const { fetchUser } = useAuth()
 

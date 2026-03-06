@@ -3,6 +3,10 @@ definePageMeta({
   layout: 'app'
 })
 
+useSeoMeta({
+  title: 'Visão geral'
+})
+
 const {
   dashboard,
   dashboardStatus,

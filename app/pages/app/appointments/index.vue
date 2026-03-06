@@ -5,6 +5,10 @@ definePageMeta({
   layout: 'app'
 })
 
+useSeoMeta({
+  title: 'Compromissos'
+})
+
 const {
   calendars,
   calendarsStatus,

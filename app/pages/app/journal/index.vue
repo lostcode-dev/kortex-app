@@ -3,6 +3,10 @@ definePageMeta({
   layout: 'app'
 })
 
+useSeoMeta({
+  title: 'Diário'
+})
+
 const {
   todayData,
   todayStatus,
