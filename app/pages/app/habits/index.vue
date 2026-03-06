@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Habit, HabitReflection } from '~/types/habits'
+import type { Habit, HabitReflection } from "~/types/habits";
 
 definePageMeta({
-  layout: 'app'
-})
+  layout: "app",
+});
 
 const {
   todayData,
@@ -26,110 +26,110 @@ const {
   frequencyOptions,
   difficultyOptions,
   fetchHabit,
-  getCurrentWeekKey
-} = useHabits()
+  getCurrentWeekKey,
+} = useHabits();
 
 // ─── Active tab ───────────────────────────────────────────────────────────────
-const activeTab = ref('today')
+const activeTab = ref("today");
 
 const tabs = [
-  { label: 'Hoje', value: 'today', icon: 'i-lucide-sun' },
-  { label: 'Todos', value: 'all', icon: 'i-lucide-list' },
-  { label: 'Insights', value: 'insights', icon: 'i-lucide-bar-chart-3' },
-  { label: 'Revisão', value: 'review', icon: 'i-lucide-notebook-pen' }
-]
+  { label: "Hoje", value: "today", icon: "i-lucide-sun" },
+  { label: "Todos", value: "all", icon: "i-lucide-list" },
+  { label: "Revisão", value: "review", icon: "i-lucide-notebook-pen" },
+];
 
 // Load insights when tab is selected
 watch(activeTab, (tab) => {
-  if (tab === 'insights') {
-    refreshInsights()
+  if (tab === "review") {
+    loadReflection();
   }
-  if (tab === 'review') {
-    loadReflection()
-  }
-})
+});
 
 // ─── Modals ───────────────────────────────────────────────────────────────────
-const createModalOpen = ref(false)
-const editModalOpen = ref(false)
-const archiveModalOpen = ref(false)
-const detailSlideoverOpen = ref(false)
-const identityModalOpen = ref(false)
-const selectedHabit = ref<Habit | null>(null)
+const createModalOpen = ref(false);
+const editModalOpen = ref(false);
+const archiveModalOpen = ref(false);
+const detailSlideoverOpen = ref(false);
+const identityModalOpen = ref(false);
+const selectedHabit = ref<Habit | null>(null);
 
 // ─── Today actions ────────────────────────────────────────────────────────────
 async function onToggleHabit(habitId: string, completed: boolean) {
-  const today = todayDate.value ?? new Date().toISOString().split('T')[0]!
-  await logHabit({ habitId, logDate: today, completed })
+  const today = todayDate.value ?? new Date().toISOString().split("T")[0]!;
+  await logHabit({ habitId, logDate: today, completed });
+  await refreshInsights();
 }
 
 async function onSelectHabit(habitId: string) {
-  const habit = await fetchHabit(habitId)
+  const habit = await fetchHabit(habitId);
   if (habit) {
-    selectedHabit.value = habit
-    detailSlideoverOpen.value = true
+    selectedHabit.value = habit;
+    detailSlideoverOpen.value = true;
   }
 }
 
 // ─── List actions ─────────────────────────────────────────────────────────────
 function onEditHabit(habit: Habit) {
-  selectedHabit.value = habit
-  editModalOpen.value = true
+  selectedHabit.value = habit;
+  editModalOpen.value = true;
 }
 
 function onArchiveHabit(habit: Habit) {
-  selectedHabit.value = habit
-  archiveModalOpen.value = true
+  selectedHabit.value = habit;
+  archiveModalOpen.value = true;
 }
 
 function onHabitArchived() {
-  detailSlideoverOpen.value = false
-  selectedHabit.value = null
+  detailSlideoverOpen.value = false;
+  selectedHabit.value = null;
 }
 
 // ─── Weekly Review ────────────────────────────────────────────────────────────
-const currentReflection = ref<HabitReflection | null>(null)
-const reflectionLoading = ref(false)
+const currentReflection = ref<HabitReflection | null>(null);
+const reflectionLoading = ref(false);
 
 async function loadReflection() {
-  reflectionLoading.value = true
+  reflectionLoading.value = true;
   try {
-    const weekKey = getCurrentWeekKey()
-    const data = await $fetch<HabitReflection | null>('/api/habits/reflections', {
-      query: { weekKey }
-    })
-    currentReflection.value = data
+    const weekKey = getCurrentWeekKey();
+    const data = await $fetch<HabitReflection | null>(
+      "/api/habits/reflections",
+      {
+        query: { weekKey },
+      },
+    );
+    currentReflection.value = data;
   } catch {
-    currentReflection.value = null
+    currentReflection.value = null;
   } finally {
-    reflectionLoading.value = false
+    reflectionLoading.value = false;
   }
 }
 
 // ─── Filter options ───────────────────────────────────────────────────────────
 const frequencyFilterOptions = computed(() => [
-  { label: 'Todas', value: '' },
-  ...frequencyOptions
-])
+  { label: "Todas", value: "" },
+  ...frequencyOptions,
+]);
 
 const difficultyFilterOptions = computed(() => [
-  { label: 'Todas', value: '' },
-  ...difficultyOptions
-])
+  { label: "Todas", value: "" },
+  ...difficultyOptions,
+]);
 
 const identityFilterOptions = computed(() => [
-  { label: 'Todas', value: '' },
-  ...(identities.value ?? []).map(i => ({ label: i.name, value: i.id }))
-])
+  { label: "Todas", value: "" },
+  ...(identities.value ?? []).map((i) => ({ label: i.name, value: i.id })),
+]);
 
 // Format today's date for display
 const todayFormatted = computed(() => {
-  return new Date().toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long'
-  })
-})
+  return new Date().toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+});
 </script>
 
 <template>
@@ -161,6 +161,11 @@ const todayFormatted = computed(() => {
 
     <template #body>
       <div class="space-y-6">
+        <HabitsInsightsPanel
+          :insights="insights ?? null"
+          :loading="insightsStatus === 'pending'"
+        />
+
         <!-- Tabs -->
         <UTabs
           :items="tabs"
@@ -229,14 +234,6 @@ const todayFormatted = computed(() => {
           />
         </div>
 
-        <!-- INSIGHTS TAB -->
-        <div v-if="activeTab === 'insights'">
-          <HabitsInsightsPanel
-            :insights="insights ?? null"
-            :loading="insightsStatus === 'pending'"
-          />
-        </div>
-
         <!-- REVIEW TAB -->
         <div v-if="activeTab === 'review'">
           <template v-if="reflectionLoading">
@@ -245,10 +242,7 @@ const todayFormatted = computed(() => {
               <USkeleton class="h-32 w-full" />
             </div>
           </template>
-          <HabitsWeeklyReview
-            v-else
-            :existing-reflection="currentReflection"
-          />
+          <HabitsWeeklyReview v-else :existing-reflection="currentReflection" />
         </div>
       </div>
     </template>
