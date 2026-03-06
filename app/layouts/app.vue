@@ -72,6 +72,14 @@ const links = [
       }
     },
     {
+      label: 'Ideias',
+      icon: 'i-lucide-lightbulb',
+      to: '/app/ideas',
+      onSelect: () => {
+        open.value = false
+      }
+    },
+    {
       label: 'Configurações',
       to: '/app/settings',
       icon: 'i-lucide-settings',
