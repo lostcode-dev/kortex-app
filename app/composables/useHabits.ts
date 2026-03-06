@@ -176,6 +176,23 @@ export function useHabits() {
     }
   }
 
+  async function archiveIdentity(id: string, name: string): Promise<boolean> {
+    try {
+      await $fetch(`/api/habits/identities/${id}`, { method: 'DELETE' })
+      toast.add({ title: 'Identidade arquivada', description: `"${name}" foi arquivada.`, color: 'success' })
+
+      if (listIdentityId.value === id) {
+        listIdentityId.value = ''
+      }
+
+      await Promise.all([refreshIdentities(), refreshList()])
+      return true
+    } catch {
+      toast.add({ title: 'Erro', description: 'Não foi possível arquivar a identidade.', color: 'error' })
+      return false
+    }
+  }
+
   async function saveReflection(payload: CreateReflectionPayload): Promise<HabitReflection | null> {
     try {
       const reflection = await $fetch<HabitReflection>('/api/habits/reflections', {
@@ -274,6 +291,7 @@ export function useHabits() {
     restoreHabit,
     logHabit,
     createIdentity,
+    archiveIdentity,
     saveReflection,
     fetchCalendar,
     fetchHabit,

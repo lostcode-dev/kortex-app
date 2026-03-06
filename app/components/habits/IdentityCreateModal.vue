@@ -11,7 +11,7 @@ const emit = defineEmits<{
   'created': []
 }>()
 
-const { createIdentity } = useHabits()
+const { createIdentity, archiveIdentity, identities, identitiesStatus } = useHabits()
 
 const schema = z.object({
   name: z.string().min(1, 'Nome é obrigatório').max(200),
@@ -26,6 +26,7 @@ const state = reactive<Partial<Schema>>({
 })
 
 const loading = ref(false)
+const archivingId = ref<string | null>(null)
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   loading.value = true
@@ -35,10 +36,18 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       state.name = ''
       state.description = ''
       emit('created')
-      emit('update:open', false)
     }
   } finally {
     loading.value = false
+  }
+}
+
+async function onArchive(identityId: string, identityName: string) {
+  archivingId.value = identityId
+  try {
+    await archiveIdentity(identityId, identityName)
+  } finally {
+    archivingId.value = null
   }
 }
 </script>
@@ -51,43 +60,91 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     @update:open="emit('update:open', $event)"
   >
     <template #body>
-      <UForm
-        :schema="schema"
-        :state="state"
-        class="space-y-4"
-        @submit="onSubmit"
-      >
-        <UFormField label="Nome" name="name">
-          <UInput
-            v-model="state.name"
-            placeholder="Ex: Eu sou uma pessoa disciplinada"
-            class="w-full"
-          />
-        </UFormField>
+      <div class="space-y-6">
+        <UForm
+          :schema="schema"
+          :state="state"
+          class="space-y-4"
+          @submit="onSubmit"
+        >
+          <UFormField label="Nome" name="name">
+            <UInput
+              v-model="state.name"
+              placeholder="Ex: Eu sou uma pessoa disciplinada"
+              class="w-full"
+            />
+          </UFormField>
 
-        <UFormField label="Descrição (opcional)" name="description">
-          <UTextarea
-            v-model="state.description"
-            placeholder="Descreva quem você quer se tornar..."
-            class="w-full"
-            :rows="2"
-          />
-        </UFormField>
+          <UFormField label="Descrição (opcional)" name="description">
+            <UTextarea
+              v-model="state.description"
+              placeholder="Descreva quem você quer se tornar..."
+              class="w-full"
+              :rows="2"
+            />
+          </UFormField>
 
-        <div class="flex justify-end gap-2 pt-2">
-          <UButton
-            label="Cancelar"
-            color="neutral"
-            variant="subtle"
-            @click="emit('update:open', false)"
-          />
-          <UButton
-            label="Criar identidade"
-            type="submit"
-            :loading="loading"
-          />
+          <div class="flex justify-end gap-2 pt-2">
+            <UButton
+              label="Fechar"
+              color="neutral"
+              variant="subtle"
+              @click="emit('update:open', false)"
+            />
+            <UButton
+              label="Criar identidade"
+              type="submit"
+              :loading="loading"
+            />
+          </div>
+        </UForm>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-sm font-medium text-highlighted">
+              Identidades
+            </p>
+          </div>
+
+          <template v-if="identitiesStatus === 'pending'">
+            <UCard v-for="i in 3" :key="i">
+              <div class="space-y-2">
+                <USkeleton class="h-4 w-1/2" />
+                <USkeleton class="h-3 w-2/3" />
+              </div>
+            </UCard>
+          </template>
+
+          <template v-else-if="(identities ?? []).length > 0">
+            <UCard v-for="identity in identities" :key="identity.id">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="font-medium text-highlighted truncate">
+                    {{ identity.name }}
+                  </p>
+                  <p v-if="identity.description" class="text-sm text-muted mt-0.5">
+                    {{ identity.description }}
+                  </p>
+                </div>
+
+                <UButton
+                  icon="i-lucide-archive"
+                  color="neutral"
+                  variant="subtle"
+                  size="sm"
+                  :loading="archivingId === identity.id"
+                  aria-label="Arquivar identidade"
+                  @click="onArchive(identity.id, identity.name)"
+                />
+              </div>
+            </UCard>
+          </template>
+
+          <div v-else class="text-sm text-muted">
+            Nenhuma identidade criada ainda.
+          </div>
         </div>
-      </UForm>
+      </div>
     </template>
   </UModal>
 </template>

@@ -9,7 +9,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  'edit': []
   'archive': []
 }>()
 
@@ -58,13 +57,6 @@ const tabs = [
             </p>
           </div>
           <div class="flex gap-1">
-            <UButton
-              icon="i-lucide-pencil"
-              color="neutral"
-              variant="ghost"
-              size="sm"
-              @click="emit('edit')"
-            />
             <UButton
               icon="i-lucide-archive"
               color="error"
@@ -127,6 +119,7 @@ const tabs = [
           <div class="text-sm">
             <span class="text-muted">Criado em: </span>
             <span class="text-highlighted">
+              {{ habit.createdAt }}
               {{ new Date(habit.createdAt).toLocaleDateString('pt-BR') }}
             </span>
           </div>
