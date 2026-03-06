@@ -49,7 +49,8 @@ const providers = [{
 
 const schema = z.object({
   email: z.email('Email inválido'),
-  password: z.string().min(8, 'A senha deve ter pelo menos 8 caracteres')
+  password: z.string().min(8, 'A senha deve ter pelo menos 8 caracteres'),
+  remember: z.boolean().optional().default(true)
 })
 
 type Schema = z.output<typeof schema>
@@ -58,7 +59,8 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
   try {
     await auth.login({
       email: payload.data.email,
-      password: payload.data.password
+      password: payload.data.password,
+      remember: payload.data.remember
     })
 
     toast.add({

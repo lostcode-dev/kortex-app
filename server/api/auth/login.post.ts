@@ -5,7 +5,8 @@ import { setAuthUserCookie, toAuthUser } from '../../utils/auth-user'
 
 const schema = z.object({
   email: z.string().email(),
-  password: z.string().min(8)
+  password: z.string().min(8),
+  remember: z.boolean().optional().default(true)
 })
 
 export default eventHandler(async (event) => {
@@ -34,13 +35,13 @@ export default eventHandler(async (event) => {
     })
   }
 
-  setAuthCookies(event, data.session)
+  setAuthCookies(event, data.session, { persistent: parsed.data.remember })
 
   setAuthUserCookie(event, {
     user: toAuthUser(data.user),
     expiresAt: data.session.expires_at ?? null,
     syncedAt: Date.now()
-  })
+  }, { persistent: parsed.data.remember })
 
   return {
     user: toAuthUser(data.user),

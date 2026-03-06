@@ -169,7 +169,7 @@ const identityItems = computed(() => {
           </div>
         </UFormField>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-end gap-2">
           <UFormField label="Identidade" name="identityId">
             <USelect
               v-model="state.identityId"
@@ -183,7 +183,7 @@ const identityItems = computed(() => {
               icon="i-lucide-user-plus"
               color="neutral"
               variant="subtle"
-              size="sm"
+              size="md"
               aria-label="Gerenciar identidades"
               @click="emit('identityModalOpen', true)"
             />

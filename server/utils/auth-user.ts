@@ -13,6 +13,10 @@ export type AuthUserCookiePayload = {
   syncedAt: number
 }
 
+type CookieOptions = {
+  persistent?: boolean
+}
+
 const USER_COOKIE = 'sb-user'
 
 function getBaseOptions() {
@@ -37,13 +41,14 @@ export function toAuthUser(user: User): AuthUser {
   }
 }
 
-export function setAuthUserCookie(event: H3Event, payload: AuthUserCookiePayload) {
+export function setAuthUserCookie(event: H3Event, payload: AuthUserCookiePayload, options?: CookieOptions) {
   const value = encodeURIComponent(JSON.stringify(payload))
 
-  setCookie(event, USER_COOKIE, value, {
-    ...getBaseOptions(),
-    maxAge: 60 * 60 * 24 * 30
-  })
+  const isPersistent = options?.persistent ?? true
+
+  setCookie(event, USER_COOKIE, value, isPersistent
+    ? { ...getBaseOptions(), maxAge: 60 * 60 * 24 * 30 }
+    : { ...getBaseOptions() })
 }
 
 export function clearAuthUserCookie(event: H3Event) {

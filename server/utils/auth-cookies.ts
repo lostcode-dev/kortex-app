@@ -6,6 +6,7 @@ const REFRESH_TOKEN_COOKIE = 'sb-refresh-token'
 
 type CookieOptions = {
   secure?: boolean
+  persistent?: boolean
 }
 
 function getBaseOptions(options?: CookieOptions) {
@@ -20,15 +21,16 @@ function getBaseOptions(options?: CookieOptions) {
 export function setAuthCookies(event: H3Event, session: Session, options?: CookieOptions) {
   const base = getBaseOptions(options)
 
+  const isPersistent = options?.persistent ?? true
+
   setCookie(event, ACCESS_TOKEN_COOKIE, session.access_token, {
     ...base,
     maxAge: session.expires_in
   })
 
-  setCookie(event, REFRESH_TOKEN_COOKIE, session.refresh_token, {
-    ...base,
-    maxAge: 60 * 60 * 24 * 365
-  })
+  setCookie(event, REFRESH_TOKEN_COOKIE, session.refresh_token, isPersistent
+    ? { ...base, maxAge: 60 * 60 * 24 * 365 }
+    : { ...base })
 }
 
 export function clearAuthCookies(event: H3Event, options?: CookieOptions) {

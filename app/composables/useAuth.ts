@@ -17,6 +17,7 @@ type AuthState = {
 
 export function useAuth() {
   const userCookie = useCookie<string | null>('sb-user', { default: () => null })
+  const authFetch = $fetch.create({ credentials: 'include' })
 
   const state = useState<AuthState>('auth', () => {
     const raw = userCookie.value
@@ -36,7 +37,7 @@ export function useAuth() {
   const isAuthenticated = computed(() => Boolean(state.value.user))
 
   async function fetchUser() {
-    const response = await $fetch<{ user: AuthUser | null }>('/api/auth/me')
+    const response = await authFetch<{ user: AuthUser | null }>('/api/auth/me')
     state.value.user = response.user
     state.value.ready = true
     return response.user
@@ -65,8 +66,8 @@ export function useAuth() {
     await fetchUser()
   }
 
-  async function login(payload: { email: string, password: string }) {
-    const response = await $fetch<{ user: AuthUser }>('/api/auth/login', {
+  async function login(payload: { email: string, password: string, remember?: boolean }) {
+    const response = await authFetch<{ user: AuthUser }>('/api/auth/login', {
       method: 'POST',
       body: payload
     })
@@ -77,7 +78,7 @@ export function useAuth() {
   }
 
   async function signup(payload: { name: string, email: string, password: string }) {
-    const response = await $fetch<{ user: AuthUser | null, session: { expiresAt: number | null } | null }>('/api/auth/signup', {
+    const response = await authFetch<{ user: AuthUser | null, session: { expiresAt: number | null } | null }>('/api/auth/signup', {
       method: 'POST',
       body: payload
     })
@@ -91,7 +92,7 @@ export function useAuth() {
   }
 
   async function logout() {
-    await $fetch('/api/auth/logout', { method: 'POST' })
+    await authFetch('/api/auth/logout', { method: 'POST' })
     state.value.user = null
     state.value.ready = true
     userCookie.value = null

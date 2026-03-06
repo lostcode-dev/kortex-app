@@ -184,7 +184,7 @@ const identityItems = computed(() => {
             icon="i-lucide-user-plus"
             color="neutral"
             variant="subtle"
-            size="sm"
+            size="md"
             aria-label="Gerenciar identidades"
             @click="emit('identityModalOpen', true)"
           />
