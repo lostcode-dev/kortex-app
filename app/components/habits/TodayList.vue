@@ -26,11 +26,6 @@ const difficultyColor: Record<string, 'success' | 'warning' | 'error'> = {
   [HabitDifficulty.Hard]: 'error'
 }
 
-const progress = computed(() => {
-  if (props.totalCount === 0) return 0
-  return Math.round((props.completedCount / props.totalCount) * 100)
-})
-
 const allDone = computed(() => props.totalCount > 0 && props.completedCount === props.totalCount)
 </script>
 
@@ -42,7 +37,11 @@ const allDone = computed(() => props.totalCount > 0 && props.completedCount === 
         <span class="text-muted">Progresso do dia</span>
           <span class="font-medium text-highlighted">{{ completedCount }}/{{ totalCount }}</span>
       </div>
-      <UProgress :value="progress" size="sm" :model-value="Number(completedCount)" :max="totalCount" />
+      <UProgress
+        :model-value="Number(completedCount)"
+        :max="Number(totalCount)"
+        size="sm"
+      />
     </div>
 
     <!-- All done state -->

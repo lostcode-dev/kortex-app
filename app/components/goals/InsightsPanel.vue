@@ -88,7 +88,7 @@ defineProps<{
                 {{ cat.count }} meta{{ cat.count !== 1 ? 's' : '' }} · {{ cat.avgProgress }}%
               </span>
             </div>
-            <UProgress :model-value="cat.avgProgress" size="xs" />
+            <UProgress :model-value="Number(cat.avgProgress)" :max="100" size="xs" />
           </div>
         </div>
       </UCard>
@@ -109,7 +109,7 @@ defineProps<{
                 {{ cat.count }} meta{{ cat.count !== 1 ? 's' : '' }} · {{ cat.avgProgress }}%
               </span>
             </div>
-            <UProgress :model-value="cat.avgProgress" size="xs" />
+            <UProgress :model-value="Number(cat.avgProgress)" :max="100" size="xs" />
           </div>
         </div>
       </UCard>

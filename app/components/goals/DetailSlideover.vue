@@ -175,7 +175,7 @@ async function onUnlinkHabit(linkId: string) {
               {{ Math.round(currentGoal.progress) }}%
             </span>
           </div>
-          <UProgress :model-value="currentGoal.progress" size="md" />
+          <UProgress :model-value="Number(currentGoal.progress)" :max="100" size="md" />
           <p class="text-xs text-muted">
             {{ completedTaskCount }} de {{ tasks.length }} tarefa{{ tasks.length !== 1 ? 's' : '' }} concluída{{ completedTaskCount !== 1 ? 's' : '' }}
           </p>

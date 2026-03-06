@@ -81,7 +81,7 @@ const stats = computed(() => {
             <span class="text-highlighted">{{ ip.identity.name }}</span>
             <span class="text-muted">{{ ip.score }}% · {{ ip.totalHabits }} hábitos</span>
           </div>
-          <UProgress :value="ip.score" size="sm" />
+          <UProgress :model-value="Number(ip.score)" :max="100" size="sm" />
         </div>
       </div>
     </UCard>

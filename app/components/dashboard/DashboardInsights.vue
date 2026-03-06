@@ -82,14 +82,14 @@ interface StatCard {
           <div class="flex items-center justify-between">
             <span class="text-sm text-muted">Conclusão (7 dias)</span>
             <div class="flex items-center gap-2">
-              <UProgress :value="insights.habits.completionRate7d" size="sm" class="w-24" />
+              <UProgress :model-value="Number(insights.habits.completionRate7d)" :max="100" size="sm" class="w-24" />
               <span class="text-sm font-medium">{{ insights.habits.completionRate7d }}%</span>
             </div>
           </div>
           <div class="flex items-center justify-between">
             <span class="text-sm text-muted">Conclusão (30 dias)</span>
             <div class="flex items-center gap-2">
-              <UProgress :value="insights.habits.completionRate30d" size="sm" class="w-24" />
+              <UProgress :model-value="Number(insights.habits.completionRate30d)" :max="100" size="sm" class="w-24" />
               <span class="text-sm font-medium">{{ insights.habits.completionRate30d }}%</span>
             </div>
           </div>
@@ -142,7 +142,7 @@ interface StatCard {
           <div class="flex items-center justify-between">
             <span class="text-sm text-muted">Progresso médio</span>
             <div class="flex items-center gap-2">
-              <UProgress :value="insights.goals.averageProgress" size="sm" class="w-24" />
+              <UProgress :model-value="Number(insights.goals.averageProgress)" :max="100" size="sm" class="w-24" />
               <span class="text-sm font-medium">{{ insights.goals.averageProgress }}%</span>
             </div>
           </div>

@@ -120,6 +120,7 @@ const _props = props
             <div class="flex-1 mx-3">
               <UProgress
                 :model-value="_props.insights.totalEntries > 0 ? Math.round((day.count / _props.insights.totalEntries) * 100) : 0"
+                :max="100"
                 size="xs"
               />
             </div>

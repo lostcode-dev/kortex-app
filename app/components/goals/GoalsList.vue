@@ -106,7 +106,8 @@ function getRowItems(goal: Goal) {
             <!-- Progress bar -->
             <div class="flex items-center gap-2 min-w-[6rem]">
               <UProgress
-                :model-value="goal.progress"
+                :model-value="Number(goal.progress)"
+                :max="100"
                 size="xs"
                 class="flex-1"
               />

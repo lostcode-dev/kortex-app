@@ -72,7 +72,8 @@ defineProps<{
     <template v-if="totalCount > 0" #footer>
       <div class="flex items-center justify-between">
         <UProgress
-          :value="totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0"
+          :model-value="Number(completedCount)"
+          :max="Number(totalCount)"
           size="sm"
           class="flex-1"
         />

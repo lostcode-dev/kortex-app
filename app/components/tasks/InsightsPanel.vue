@@ -110,6 +110,7 @@ defineProps<{
             </div>
             <UProgress
               :model-value="insights.totalTasks > 0 ? Math.round((item.count / insights.totalTasks) * 100) : 0"
+              :max="100"
               size="xs"
             />
           </div>
@@ -134,6 +135,7 @@ defineProps<{
             </div>
             <UProgress
               :model-value="insights.totalTasks > 0 ? Math.round((item.count / insights.totalTasks) * 100) : 0"
+              :max="100"
               size="xs"
             />
           </div>
