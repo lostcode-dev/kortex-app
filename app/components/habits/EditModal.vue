@@ -191,6 +191,10 @@ function getHabitTypeIcon(habitType: HabitType) {
     :open="props.open"
     title="Editar hábito"
     description="Ajuste o hábito para continuar evoluindo."
+    :ui="{
+      overlay: 'z-[200] bg-elevated/75',
+      content: 'z-[210]'
+    }"
     @update:open="onClose"
   >
     <template #body>

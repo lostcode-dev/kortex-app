@@ -59,6 +59,10 @@ function onChangeReminderTime(event: Event) {
     :open="props.open"
     title="Configurações de hábitos"
     description="Ajuste suas preferências de revisão e lembretes."
+    :ui="{
+      overlay: 'z-[200] bg-elevated/75',
+      content: 'z-[210]'
+    }"
     @update:open="emit('update:open', $event)"
   >
     <template #body>

@@ -120,6 +120,10 @@ async function shareNative() {
     :open="props.open"
     title="Compartilhar progresso"
     description="Gere uma imagem para compartilhar nas redes sociais"
+    :ui="{
+      overlay: 'z-[200] bg-elevated/75',
+      content: 'z-[210]'
+    }"
     @update:open="emit('update:open', $event)"
   >
     <template #body>

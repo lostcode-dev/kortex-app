@@ -78,6 +78,10 @@ function onClose() {
     :open="props.open"
     title="Empilhar hábitos"
     description="Depois de X, eu farei Y."
+    :ui="{
+      overlay: 'z-[200] bg-elevated/75',
+      content: 'z-[210]'
+    }"
     @update:open="onClose"
   >
     <template #body>

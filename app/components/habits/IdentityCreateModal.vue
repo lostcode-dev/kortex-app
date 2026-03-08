@@ -58,6 +58,10 @@ async function onArchive(identityId: string, identityName: string) {
     :open="props.open"
     title="Nova identidade"
     description="Quem você quer se tornar?"
+    :ui="{
+      overlay: 'z-[200] bg-elevated/75',
+      content: 'z-[210]'
+    }"
     @update:open="emit('update:open', $event)"
   >
     <template #body>

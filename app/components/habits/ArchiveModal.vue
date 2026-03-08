@@ -33,6 +33,10 @@ async function onConfirm() {
   <UModal
     :open="props.open"
     title="Arquivar hábito"
+    :ui="{
+      overlay: 'z-[200] bg-elevated/75',
+      content: 'z-[210]'
+    }"
     @update:open="emit('update:open', $event)"
   >
     <template #body>

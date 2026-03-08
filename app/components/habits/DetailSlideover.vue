@@ -40,6 +40,10 @@ const incomingStacks = computed(() =>
   <USlideover
     :open="props.open"
     title="Detalhes do hábito"
+    :ui="{
+      overlay: 'z-[80]',
+      content: 'z-[90]'
+    }"
     @update:open="emit('update:open', $event)"
   >
     <template #body>
