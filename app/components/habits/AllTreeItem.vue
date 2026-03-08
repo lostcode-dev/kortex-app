@@ -23,9 +23,10 @@ const depth = computed(() => props.depth ?? 0)
 const isLast = computed(() => props.isLast ?? true)
 const ancestorHasNext = computed(() => props.ancestorHasNext ?? [])
 
-const INDENT_SIZE = 24
-const CONNECTOR_OFFSET = 12
+const INDENT_SIZE = 20
+const CONNECTOR_OFFSET = 10
 const ROW_MIDPOINT = '1.75rem'
+const DOT_SIZE = 8
 
 const treePaddingLeft = computed(() => {
   if (depth.value === 0) return '0px'
@@ -43,6 +44,8 @@ const ancestorConnectors = computed(() => {
     left: `${index * INDENT_SIZE + CONNECTOR_OFFSET}px`
   }))
 })
+
+const showConnectorTail = computed(() => depth.value > 0 && (props.node.children.length > 0 || !isLast.value))
 
 function getOutgoingStacks(habit: Habit): HabitStack[] {
   return (props.stacks ?? []).filter((stack) => stack.triggerHabitId === habit.id)
@@ -124,34 +127,45 @@ function onChildArchive(habit: Habit) {
       v-for="(connector, index) in ancestorConnectors"
       :key="`${node.habit.id}-ancestor-${index}`"
       v-show="connector.hasNext"
-      class="pointer-events-none absolute top-0 bottom-0 w-px bg-default"
+      class="pointer-events-none absolute top-0 bottom-0 w-px bg-muted/70"
       :style="{ left: connector.left }"
     />
 
     <div
       v-if="depth > 0"
-      class="pointer-events-none absolute w-px bg-primary/30"
+      class="pointer-events-none absolute w-px bg-muted/70"
       :style="{ left: currentConnectorLeft, top: '0', height: ROW_MIDPOINT }"
     />
 
     <div
       v-if="depth > 0"
-      class="pointer-events-none absolute h-px bg-primary/30"
+      class="pointer-events-none absolute h-px bg-muted/70"
       :style="{ left: currentConnectorLeft, top: ROW_MIDPOINT, width: `${CONNECTOR_OFFSET}px` }"
     />
 
     <div
-      v-if="depth > 0 && (node.children.length > 0 || !isLast)"
-      class="pointer-events-none absolute bottom-0 w-px bg-primary/30"
+      v-if="depth > 0"
+      class="pointer-events-none absolute rounded-full border border-primary/40 bg-default shadow-sm"
+      :style="{
+        left: `calc(${currentConnectorLeft} - ${DOT_SIZE / 2 - 0.5}px)`,
+        top: `calc(${ROW_MIDPOINT} - ${DOT_SIZE / 2}px)`,
+        width: `${DOT_SIZE}px`,
+        height: `${DOT_SIZE}px`,
+      }"
+    />
+
+    <div
+      v-if="showConnectorTail"
+      class="pointer-events-none absolute bottom-0 w-px bg-muted/70"
       :style="{ left: currentConnectorLeft, top: ROW_MIDPOINT }"
     />
 
     <div :style="{ paddingLeft: treePaddingLeft }">
       <UCard
         :class="[
-          'cursor-pointer transition-colors hover:bg-elevated/50',
-          getStackDescription(node.habit) ? 'ring-1 ring-primary/30 bg-primary/5' : '',
-          depth > 0 ? 'shadow-sm' : '',
+          'cursor-pointer border border-default/60 transition-colors hover:bg-elevated/50',
+          getStackDescription(node.habit) ? 'ring-1 ring-primary/20 bg-primary/4' : 'bg-default/60',
+          depth > 0 ? 'shadow-sm' : 'shadow-sm',
         ]"
         @click="emit('select', node.habit.id)"
       >
@@ -186,6 +200,13 @@ function onChildArchive(habit: Habit) {
               >
                 ({{ node.habit.customDays.map((d: number) => dayLabels[d]).join(', ') }})
               </span>
+            </div>
+            <div
+              v-if="depth > 0"
+              class="mt-1 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted"
+            >
+              <span class="inline-block h-1.5 w-1.5 rounded-full bg-primary/60" />
+              <span>Sub-hábito</span>
             </div>
             <div v-if="getStackDescription(node.habit)" class="mt-1 flex items-center gap-1.5 text-xs text-muted">
               <UIcon name="i-lucide-link-2" class="size-3.5 shrink-0 text-primary" />
@@ -230,7 +251,7 @@ function onChildArchive(habit: Habit) {
       </UCard>
     </div>
 
-    <div v-if="node.children.length" class="space-y-3">
+    <div v-if="node.children.length" class="space-y-3 pt-1">
       <HabitsAllTreeItem
         v-for="(child, index) in node.children"
         :key="child.habit.id"

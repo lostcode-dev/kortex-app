@@ -20,9 +20,10 @@ const depth = computed(() => props.depth ?? 0)
 const isLast = computed(() => props.isLast ?? true)
 const ancestorHasNext = computed(() => props.ancestorHasNext ?? [])
 
-const INDENT_SIZE = 24
-const CONNECTOR_OFFSET = 12
-const ROW_MIDPOINT = '2rem'
+const INDENT_SIZE = 20
+const CONNECTOR_OFFSET = 10
+const ROW_MIDPOINT = '2.1rem'
+const DOT_SIZE = 8
 
 const treePaddingLeft = computed(() => {
   if (depth.value === 0) return '0px'
@@ -40,6 +41,8 @@ const ancestorConnectors = computed(() => {
     left: `${index * INDENT_SIZE + CONNECTOR_OFFSET}px`
   }))
 })
+
+const showConnectorTail = computed(() => depth.value > 0 && (props.node.children.length > 0 || !isLast.value))
 
 function onChildToggle(habitId: string, completed: boolean) {
   emit('toggle', habitId, completed)
@@ -94,13 +97,13 @@ function getOutgoingStackLabel(): string {
       v-for="(connector, index) in ancestorConnectors"
       :key="`${node.habit.id}-ancestor-${index}`"
       v-show="connector.hasNext"
-      class="pointer-events-none absolute top-0 bottom-0 w-px bg-default"
+      class="pointer-events-none absolute top-0 bottom-0 w-px bg-muted/70"
       :style="{ left: connector.left }"
     />
 
     <div
       v-if="depth > 0"
-      class="pointer-events-none absolute w-px bg-primary/30"
+      class="pointer-events-none absolute w-px bg-muted/70"
       :style="{
         left: currentConnectorLeft,
         top: '0',
@@ -110,7 +113,7 @@ function getOutgoingStackLabel(): string {
 
     <div
       v-if="depth > 0"
-      class="pointer-events-none absolute h-px bg-primary/30"
+      class="pointer-events-none absolute h-px bg-muted/70"
       :style="{
         left: currentConnectorLeft,
         top: ROW_MIDPOINT,
@@ -119,8 +122,19 @@ function getOutgoingStackLabel(): string {
     />
 
     <div
-      v-if="depth > 0 && (node.children.length > 0 || !isLast)"
-      class="pointer-events-none absolute bottom-0 w-px bg-primary/30"
+      v-if="depth > 0"
+      class="pointer-events-none absolute rounded-full border border-primary/40 bg-default shadow-sm"
+      :style="{
+        left: `calc(${currentConnectorLeft} - ${DOT_SIZE / 2 - 0.5}px)`,
+        top: `calc(${ROW_MIDPOINT} - ${DOT_SIZE / 2}px)`,
+        width: `${DOT_SIZE}px`,
+        height: `${DOT_SIZE}px`,
+      }"
+    />
+
+    <div
+      v-if="showConnectorTail"
+      class="pointer-events-none absolute bottom-0 w-px bg-muted/70"
       :style="{
         left: currentConnectorLeft,
         top: ROW_MIDPOINT,
@@ -130,9 +144,9 @@ function getOutgoingStackLabel(): string {
     <div :style="{ paddingLeft: treePaddingLeft }">
       <UCard
         :class="[
-          'cursor-pointer transition-colors hover:bg-elevated/50',
-          isStackedHabit() ? 'ring-1 ring-primary/30 bg-primary/5' : '',
-          depth > 0 ? 'shadow-sm' : '',
+          'cursor-pointer border border-default/60 transition-colors hover:bg-elevated/50',
+          isStackedHabit() ? 'ring-1 ring-primary/20 bg-primary/4' : 'bg-default/60',
+          depth > 0 ? 'shadow-sm' : 'shadow-sm',
         ]"
         @click="emit('select', node.habit.id)"
       >
@@ -156,7 +170,7 @@ function getOutgoingStackLabel(): string {
             >
               {{ node.habit.name }}
             </p>
-            <div class="mt-0.5 flex flex-wrap items-center gap-1.5">
+            <div class="mt-1 flex flex-wrap items-center gap-1.5">
               <UBadge
                 v-if="node.habit.identity"
                 :label="node.habit.identity.name"
@@ -167,6 +181,14 @@ function getOutgoingStackLabel(): string {
               <span v-if="node.habit.log?.note" class="max-w-40 truncate text-xs italic text-muted">
                 "{{ node.habit.log.note }}"
               </span>
+            </div>
+
+            <div
+              v-if="depth > 0"
+              class="mt-1 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted"
+            >
+              <span class="inline-block h-1.5 w-1.5 rounded-full bg-primary/60" />
+              <span>Etapa da sequência</span>
             </div>
           </div>
 
@@ -202,7 +224,7 @@ function getOutgoingStackLabel(): string {
       </UCard>
     </div>
 
-    <div v-if="node.children.length" class="space-y-3">
+    <div v-if="node.children.length" class="space-y-3 pt-1">
       <TodayTreeItem
         v-for="(child, index) in node.children"
         :key="child.habit.id"
