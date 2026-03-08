@@ -59,7 +59,6 @@ function getOutgoingStackLabel(): string {
     >
       <span class="h-px w-4 bg-primary/30" />
       <UIcon name="i-lucide-corner-down-right" class="size-3.5" />
-      <span>Hábito empilhado</span>
     </div>
 
     <UCard
