@@ -297,7 +297,7 @@ const _identityFilterOptions = computed(() => [
           <UButton
             icon="i-lucide-plus"
             square
-            class="sm:hidden"
+            class="flex sm:hidden items-center justify-center"
             @click="createModalOpen = true"
           />
           <UButton
