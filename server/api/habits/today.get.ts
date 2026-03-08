@@ -23,7 +23,8 @@ export default eventHandler(async (event) => {
     .select('*, identity:identities(*), streak:habit_streaks(*)')
     .eq('user_id', user.id)
     .is('archived_at', null)
-    .order('created_at', { ascending: true })
+    .order('sort_order', { ascending: true })
+    .order('name', { ascending: true })
 
   if (habitsError) {
     throw createError({ statusCode: 500, statusMessage: 'Falha ao buscar hábitos', data: habitsError.message })

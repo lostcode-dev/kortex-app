@@ -1,5 +1,20 @@
 <script setup lang="ts">
-import type { Habit, HabitStack, HabitTreeNode } from '~/types/habits'
+import { Draggable } from '@he-tree/vue'
+import type { Habit, HabitStack, HabitTreeSyncNode } from '~/types/habits'
+import { DIFFICULTY_META, FREQUENCY_META, HABIT_TYPE_META } from '~/types/habits'
+
+interface HabitSortableTreeNode {
+  id: string
+  habit: Habit
+  children: HabitSortableTreeNode[]
+  open?: boolean
+}
+
+interface TreeStat {
+  open: boolean
+  level: number
+  data: HabitSortableTreeNode
+}
 
 const props = defineProps<{
   habits: Habit[]
@@ -17,16 +32,33 @@ const emit = defineEmits<{
   'stack': [habit: Habit]
   'remove-stacks': [habit: Habit]
   'archive': [habit: Habit]
+  'sync-tree': [nodes: HabitTreeSyncNode[]]
 }>()
 
-const habitTrees = computed<HabitTreeNode[]>(() => {
-  const visibleHabits = props.habits ?? []
+const dayLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+const treeRef = ref<{ openAll: () => void, closeAll: () => void } | null>(null)
+const treeData = ref<HabitSortableTreeNode[]>([])
+const collapsedIds = ref<string[]>([])
+const virtualizationEnabled = computed(() => props.habits.length > 12)
+
+function compareHabits(left: Habit, right: Habit): number {
+  if (left.sortOrder !== right.sortOrder) {
+    return left.sortOrder - right.sortOrder
+  }
+
+  return left.name.localeCompare(right.name, 'pt-BR')
+}
+
+function buildTreeData(): HabitSortableTreeNode[] {
+  const visibleHabits = [...(props.habits ?? [])].sort(compareHabits)
 
   if (visibleHabits.length === 0) return []
 
+  const hiddenIds = new Set(collapsedIds.value)
   const visibleHabitIds = new Set(visibleHabits.map((habit) => habit.id))
   const childrenByParent = new Map<string, string[]>()
-  const parentsByChild = new Map<string, string[]>()
+  const parentsByChild = new Map<string, string>()
+  const habitById = new Map(visibleHabits.map((habit) => [habit.id, habit] as const))
 
   for (const stack of props.stacks ?? []) {
     if (!visibleHabitIds.has(stack.triggerHabitId) || !visibleHabitIds.has(stack.newHabitId)) {
@@ -36,21 +68,24 @@ const habitTrees = computed<HabitTreeNode[]>(() => {
     const parentChildren = childrenByParent.get(stack.triggerHabitId) ?? []
     if (!parentChildren.includes(stack.newHabitId)) {
       parentChildren.push(stack.newHabitId)
+      parentChildren.sort((leftId, rightId) => {
+        const leftHabit = habitById.get(leftId)
+        const rightHabit = habitById.get(rightId)
+
+        if (!leftHabit || !rightHabit) return 0
+
+        return compareHabits(leftHabit, rightHabit)
+      })
       childrenByParent.set(stack.triggerHabitId, parentChildren)
     }
 
-    const childParents = parentsByChild.get(stack.newHabitId) ?? []
-    if (!childParents.includes(stack.triggerHabitId)) {
-      childParents.push(stack.triggerHabitId)
-      parentsByChild.set(stack.newHabitId, childParents)
-    }
+    parentsByChild.set(stack.newHabitId, stack.triggerHabitId)
   }
 
-  const habitById = new Map(visibleHabits.map((habit) => [habit.id, habit] as const))
-  const roots: HabitTreeNode[] = []
+  const roots: HabitSortableTreeNode[] = []
   const visited = new Set<string>()
 
-  function buildNode(habitId: string): HabitTreeNode | null {
+  function buildNode(habitId: string): HabitSortableTreeNode | null {
     if (visited.has(habitId)) return null
 
     const habit = habitById.get(habitId)
@@ -61,14 +96,18 @@ const habitTrees = computed<HabitTreeNode[]>(() => {
     const childIds = childrenByParent.get(habitId) ?? []
     const children = childIds
       .map((childId) => buildNode(childId))
-      .filter((child): child is HabitTreeNode => child !== null)
+      .filter((child): child is HabitSortableTreeNode => child !== null)
 
-    return { habit, children }
+    return {
+      id: habit.id,
+      habit,
+      children,
+      open: !hiddenIds.has(habit.id)
+    }
   }
 
   for (const habit of visibleHabits) {
-    const visibleParents = parentsByChild.get(habit.id) ?? []
-    if (visibleParents.length === 0) {
+    if (!parentsByChild.has(habit.id)) {
       const root = buildNode(habit.id)
       if (root) roots.push(root)
     }
@@ -80,7 +119,109 @@ const habitTrees = computed<HabitTreeNode[]>(() => {
   }
 
   return roots
-})
+}
+
+watch(
+  () => [props.habits, props.stacks],
+  () => {
+    treeData.value = buildTreeData()
+  },
+  { immediate: true, deep: true }
+)
+
+function serializeTree(nodes: HabitSortableTreeNode[]): HabitTreeSyncNode[] {
+  return nodes.map((node) => ({
+    habitId: node.habit.id,
+    children: serializeTree(node.children)
+  }))
+}
+
+function getOutgoingStacks(habit: Habit): HabitStack[] {
+  return (props.stacks ?? []).filter((stack) => stack.triggerHabitId === habit.id)
+}
+
+function getIncomingStacks(habit: Habit): HabitStack[] {
+  return (props.stacks ?? []).filter((stack) => stack.newHabitId === habit.id)
+}
+
+function getStackDescription(habit: Habit): string | null {
+  const outgoing = getOutgoingStacks(habit)
+  const incoming = getIncomingStacks(habit)
+
+  if (outgoing.length > 0) {
+    if (outgoing.length === 1) {
+      return `Depois deste hábito, faça ${outgoing[0]?.newHabit?.name ?? 'o próximo hábito'}`
+    }
+
+    return `Depois deste hábito, faça ${outgoing.length} hábitos em sequência`
+  }
+
+  if (incoming.length > 0) {
+    return `Este hábito acontece depois de ${incoming[0]?.triggerHabit?.name ?? 'outro hábito'}`
+  }
+
+  return null
+}
+
+function getRowItems(habit: Habit) {
+  const hasOutgoingStacks = getOutgoingStacks(habit).length > 0
+
+  return [
+    {
+      label: 'Editar',
+      icon: 'i-lucide-pencil',
+      onSelect: () => emit('edit', habit)
+    },
+    {
+      label: hasOutgoingStacks ? 'Remover empilhados' : 'Empilhar',
+      icon: hasOutgoingStacks ? 'i-lucide-unlink' : 'i-lucide-link',
+      onSelect: () => hasOutgoingStacks ? emit('remove-stacks', habit) : emit('stack', habit)
+    },
+    {
+      type: 'separator' as const
+    },
+    {
+      label: 'Arquivar',
+      icon: 'i-lucide-archive',
+      color: 'error' as const,
+      onSelect: () => emit('archive', habit)
+    }
+  ]
+}
+
+function expandAll() {
+  collapsedIds.value = []
+  treeRef.value?.openAll()
+}
+
+function collapseAll() {
+  const ids: string[] = []
+
+  function collect(nodes: HabitSortableTreeNode[]) {
+    for (const node of nodes) {
+      ids.push(node.habit.id)
+      collect(node.children)
+    }
+  }
+
+  collect(treeData.value)
+  collapsedIds.value = ids
+  treeRef.value?.closeAll()
+}
+
+function onTreeOpened(stat: TreeStat) {
+  collapsedIds.value = collapsedIds.value.filter((id) => id !== stat.data.habit.id)
+}
+
+function onTreeClosed(stat: TreeStat) {
+  if (!collapsedIds.value.includes(stat.data.habit.id)) {
+    collapsedIds.value = [...collapsedIds.value, stat.data.habit.id]
+  }
+}
+
+function onAfterDrop() {
+  emit('sync-tree', serializeTree(treeData.value))
+}
 </script>
 
 <template>
@@ -102,19 +243,136 @@ const habitTrees = computed<HabitTreeNode[]>(() => {
     <!-- Habits list -->
     <template v-else-if="habits.length > 0">
       <div class="space-y-4">
-        <HabitsAllTreeItem
-          v-for="(tree, index) in habitTrees"
-          :key="tree.habit.id"
-          :node="tree"
-          :stacks="stacks"
-          :is-last="index === habitTrees.length - 1"
-          :ancestor-has-next="[]"
-          @select="emit('select', $event)"
-          @edit="emit('edit', $event)"
-          @stack="emit('stack', $event)"
-          @remove-stacks="emit('remove-stacks', $event)"
-          @archive="emit('archive', $event)"
-        />
+        <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-default/60 bg-muted/20 px-3 py-2">
+          <p class="text-sm text-muted">
+            Arraste pela alça para reorganizar, use expandir/recolher para navegar melhor e a lista será virtualizada quando crescer.
+          </p>
+          <div class="flex items-center gap-2">
+            <UButton label="Expandir tudo" color="neutral" variant="subtle" size="xs" @click="expandAll" />
+            <UButton label="Recolher tudo" color="neutral" variant="subtle" size="xs" @click="collapseAll" />
+          </div>
+        </div>
+
+        <div class="habit-tree-shell rounded-2xl border border-default/60 bg-default/50 p-3">
+          <Draggable
+            ref="treeRef"
+            v-model="treeData"
+            children-key="children"
+            node-key="id"
+            trigger-class="habit-tree-drag-handle"
+            :indent="24"
+            :tree-line="true"
+            :tree-line-offset="10"
+            :default-open="true"
+            :virtualization="virtualizationEnabled"
+            :virtualization-prerender-count="20"
+            :watermark="false"
+            @open:node="onTreeOpened"
+            @close:node="onTreeClosed"
+            @after-drop="onAfterDrop"
+          >
+            <template #default="{ node, stat }">
+              <div
+                class="habit-tree-row mb-3 rounded-xl border border-default/60 bg-default/70 p-3 shadow-sm transition-colors hover:bg-elevated/50"
+                @click="emit('select', node.habit.id)"
+              >
+                <div class="flex items-start gap-3">
+                  <div class="flex items-center gap-1 pt-0.5">
+                    <button
+                      v-if="node.children.length"
+                      type="button"
+                      class="inline-flex size-7 items-center justify-center rounded-md text-muted transition hover:bg-muted/60 hover:text-highlighted"
+                      @click.stop="stat.open = !stat.open"
+                    >
+                      <UIcon :name="stat.open ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="size-4" />
+                    </button>
+                    <span v-else class="inline-flex size-7 items-center justify-center text-muted">
+                      <span class="h-1.5 w-1.5 rounded-full bg-primary/60" />
+                    </span>
+
+                    <button
+                      type="button"
+                      class="habit-tree-drag-handle inline-flex size-7 cursor-grab items-center justify-center rounded-md text-muted transition hover:bg-muted/60 hover:text-highlighted active:cursor-grabbing"
+                      aria-label="Reordenar hábito"
+                      @click.stop
+                    >
+                      <UIcon name="i-lucide-grip-vertical" class="size-4" />
+                    </button>
+                  </div>
+
+                  <UIcon
+                    :name="HABIT_TYPE_META[node.habit.habitType ?? 'positive'].icon"
+                    class="mt-1 size-4 shrink-0"
+                    :class="node.habit.habitType === 'negative' ? 'text-error' : 'text-success'"
+                  />
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <p class="truncate font-medium text-highlighted">
+                        {{ node.habit.name }}
+                      </p>
+                      <UBadge v-if="stat.level > 1" label="Sub-hábito" variant="subtle" color="primary" size="xs" />
+                    </div>
+
+                    <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                      <UBadge
+                        v-if="node.habit.identity"
+                        :label="node.habit.identity.name"
+                        variant="subtle"
+                        color="primary"
+                        size="xs"
+                      />
+                      <UBadge variant="subtle" color="neutral" size="xs">
+                        <template #leading>
+                          <UIcon :name="FREQUENCY_META[node.habit.frequency].icon" class="size-3" />
+                        </template>
+                        {{ FREQUENCY_META[node.habit.frequency].label }}
+                      </UBadge>
+                      <span
+                        v-if="node.habit.frequency === 'custom' && node.habit.customDays?.length"
+                        class="text-xs text-muted"
+                      >
+                        {{ node.habit.customDays.map((day: number) => dayLabels[day]).join(', ') }}
+                      </span>
+                    </div>
+
+                    <div v-if="getStackDescription(node.habit)" class="mt-1 flex items-center gap-1.5 text-xs text-muted">
+                      <UIcon name="i-lucide-link-2" class="size-3.5 shrink-0 text-primary" />
+                      <span class="truncate">{{ getStackDescription(node.habit) }}</span>
+                    </div>
+                  </div>
+
+                  <div class="flex shrink-0 items-center gap-2">
+                    <UBadge :color="DIFFICULTY_META[node.habit.difficulty].color" variant="subtle" size="xs">
+                      <template #leading>
+                        <UIcon :name="DIFFICULTY_META[node.habit.difficulty].icon" class="size-3" />
+                      </template>
+                      {{ DIFFICULTY_META[node.habit.difficulty].label }}
+                    </UBadge>
+
+                    <div
+                      v-if="node.habit.streak && node.habit.streak.currentStreak > 0"
+                      class="flex items-center gap-1 text-xs text-muted"
+                    >
+                      <UIcon name="i-lucide-flame" class="size-3.5 text-orange-500" />
+                      <span>{{ node.habit.streak.currentStreak }}d</span>
+                    </div>
+
+                    <UDropdownMenu :items="getRowItems(node.habit)" :content="{ align: 'end' }">
+                      <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="ghost" size="xs" @click.stop />
+                    </UDropdownMenu>
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <template #placeholder>
+              <div class="rounded-xl border border-dashed border-primary/40 bg-primary/6 px-3 py-3 text-sm text-muted">
+                Solte aqui para reposicionar o hábito.
+              </div>
+            </template>
+          </Draggable>
+        </div>
       </div>
     </template>
 
@@ -142,3 +400,21 @@ const habitTrees = computed<HabitTreeNode[]>(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+:deep(.habit-tree-shell .he-tree) {
+  max-height: 70vh;
+  overflow: auto;
+}
+
+:deep(.habit-tree-shell .tree-line) {
+  background-color: color-mix(in srgb, var(--ui-border) 80%, transparent);
+}
+
+:deep(.habit-tree-shell .he-tree-drag-placeholder) {
+  height: 56px;
+  border-radius: 0.875rem;
+  border-color: color-mix(in srgb, var(--ui-primary) 45%, transparent);
+  background: color-mix(in srgb, var(--ui-primary) 8%, transparent);
+}
+</style>

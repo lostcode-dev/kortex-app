@@ -44,6 +44,22 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 409, statusMessage: 'Esse empilhamento já existe' })
   }
 
+  const { data: existingParent } = await supabase
+    .from('habit_stacks')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('new_habit_id', parsed.newHabitId)
+    .neq('trigger_habit_id', parsed.triggerHabitId)
+    .is('archived_at', null)
+    .maybeSingle()
+
+  if (existingParent) {
+    throw createError({
+      statusCode: 409,
+      statusMessage: 'Este hábito já está empilhado abaixo de outro hábito. Remova o vínculo atual antes de mover.'
+    })
+  }
+
   const { data, error } = await supabase
     .from('habit_stacks')
     .insert({

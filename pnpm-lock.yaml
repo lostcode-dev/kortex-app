@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@he-tree/vue':
+        specifier: ^2.10.1
+        version: 2.10.1(vue@3.5.29(typescript@5.9.3))
       '@iconify-json/lucide':
         specifier: ^1.2.95
         version: 1.2.95
@@ -535,6 +538,22 @@ packages:
 
   '@floating-ui/vue@1.1.11':
     resolution: {integrity: sha512-HzHKCNVxnGS35r9fCHBc3+uCnjw9IWIlCPL683cGgM9Kgj2BiAl8x1mS7vtvP6F9S/e/q4O6MApwSHj8hNLGfw==}
+
+  '@he-tree/dnd-utils@0.1.0-alpha.4':
+    resolution: {integrity: sha512-DuxkFOQ8eztoHrX1/VelqOnQphQbRszemfMKSKlAEEhVjqR/IkaOE2QSRlAdj6OC6AfMvHDPvIZOiEPFwP6/ZQ==}
+
+  '@he-tree/tree-utils@0.1.0-alpha.8':
+    resolution: {integrity: sha512-4M4BzXbjCg2uY/GDPUGzq1EFGgna5L7NGFF85fF2pSnCIUkWOZY18eaSqvvlOFtyD5DWkkDqxzu0GHFlp/Zb4g==}
+
+  '@he-tree/vue@2.10.1':
+    resolution: {integrity: sha512-0L0jIWfb92YQfv5ndY5Sv8l3ZSn39MZC41Edl6ux7DQ9grfaEPigpHLxElUVm2XV3bUCfX1xg4ooi116Uwg4HQ==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      '@vue/composition-api': ^1.4.6
+      vue: ^2.0.0 || >=3.0.0
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -2661,6 +2680,16 @@ packages:
     engines: {node: '>=20'}
     hasBin: true
 
+  '@virtual-list/vue@1.2.1':
+    resolution: {integrity: sha512-sVangNRLgHJsrwjf2EeXuc8mUExbLRJO39J9/FXFWXXQkue/FBT4ZWN7GH5+GJTeVaEEfHW1W2UuVaf3LEB3jQ==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      '@vue/composition-api': ^1.4.6
+      vue: ^2.0.0 || >=3.0.0
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+
   '@vitejs/plugin-vue-jsx@5.1.4':
     resolution: {integrity: sha512-70LmoVk9riR7qc4W2CpjsbNMWTPnuZb9dpFKX1emru0yP57nsc9k8nhLA6U93ngQapv5VDIUq2JatNfLbBIkrA==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -3653,6 +3682,9 @@ packages:
     resolution: {integrity: sha512-IO8C/dzEb6O3F9/twg6ZLXz164a2fhTnEWb95H23Dm4OuN+92NmEAlTrupP9VW6Jm3sO26tQlqyvyi4CsnY9GA==}
     engines: {node: '>=12'}
 
+  drag-event-service@2.0.0:
+    resolution: {integrity: sha512-JVEnOEbbNDS3RrWd+tVVIDu2SHQZ9luhEFGSQ1hXMjl+ABw0PxhHmnkGjzPVE836Tsg+k7rkm5GM9Ln/UgbYpA==}
+
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
     engines: {node: '>= 0.4'}
@@ -4322,6 +4354,9 @@ packages:
 
   hastscript@9.0.1:
     resolution: {integrity: sha512-g7df9rMFX/SPi34tyGCyUBREQoKkapwdY/T04Qn9TDWfHhAYt4/I0gMVirzK5wEzeUqIjEB+LXC/ypb7Aqno5w==}
+
+  helper-js@3.1.6:
+    resolution: {integrity: sha512-lhncHDAxS2PTA44aG1AofxT51v0IXEVOmaUCC6HwuGaGqE1yEkjhPH74Vb/Aw4xt8Kt5bMvStCr6FekANp+PGg==}
 
   hex-rgb@4.3.0:
     resolution: {integrity: sha512-Ox1pJVrDCyGHMG9CFg1tmrRUMRPRsAWYc/PinY0XzJU4K7y7vjNoLKIQ7BR5UJMCxNN8EM1MNDmHWA/B3aZUuw==}
@@ -7392,6 +7427,27 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
+  '@he-tree/dnd-utils@0.1.0-alpha.4':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      drag-event-service: 2.0.0
+      helper-js: 3.1.6
+
+  '@he-tree/tree-utils@0.1.0-alpha.8':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      drag-event-service: 2.0.0
+      helper-js: 3.1.6
+
+  '@he-tree/vue@2.10.1(vue@3.5.29(typescript@5.9.3))':
+    dependencies:
+      '@he-tree/dnd-utils': 0.1.0-alpha.4
+      '@he-tree/tree-utils': 0.1.0-alpha.8
+      '@virtual-list/vue': 1.2.1(vue@3.5.29(typescript@5.9.3))
+      helper-js: 3.1.6
+      vue: 3.5.29(typescript@5.9.3)
+      vue-demi: 0.14.10(vue@3.5.29(typescript@5.9.3))
+
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.7':
@@ -9801,6 +9857,12 @@ snapshots:
       - rollup
       - supports-color
 
+  '@virtual-list/vue@1.2.1(vue@3.5.29(typescript@5.9.3))':
+    dependencies:
+      helper-js: 3.1.6
+      vue: 3.5.29(typescript@5.9.3)
+      vue-demi: 0.14.10(vue@3.5.29(typescript@5.9.3))
+
   '@vitejs/plugin-vue-jsx@5.1.4(vite@7.3.1(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(yaml@2.8.2))(vue@3.5.29(typescript@5.9.3))':
     dependencies:
       '@babel/core': 7.29.0
@@ -10816,6 +10878,11 @@ snapshots:
 
   dotenv@17.3.1: {}
 
+  drag-event-service@2.0.0:
+    dependencies:
+      '@babel/runtime': 7.28.6
+      helper-js: 3.1.6
+
   dunder-proto@1.0.1:
     dependencies:
       call-bind-apply-helpers: 1.0.2
@@ -11655,6 +11722,10 @@ snapshots:
       hast-util-parse-selector: 4.0.0
       property-information: 7.1.0
       space-separated-tokens: 2.0.2
+
+  helper-js@3.1.6:
+    dependencies:
+      '@babel/runtime': 7.28.6
 
   hex-rgb@4.3.0: {}
 

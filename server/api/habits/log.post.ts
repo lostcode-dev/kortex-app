@@ -12,7 +12,17 @@ const bodySchema = z.object({
 export default eventHandler(async (event) => {
   const user = await requireAuthUser(event)
   const body = await readBody(event)
-  const parsed = bodySchema.parse(body)
+  const parsedBody = bodySchema.safeParse(body)
+
+  if (!parsedBody.success) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Payload inválido para registrar hábito',
+      data: parsedBody.error.flatten()
+    })
+  }
+
+  const parsed = parsedBody.data
 
   const supabase = getSupabaseAdminClient()
 
@@ -49,8 +59,16 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'Falha ao registrar hábito', data: logError.message })
   }
 
-  // Update streak cache
-  await updateStreakCache(supabase, user.id, parsed.habitId)
+  // Keep the log action successful even if the cache refresh fails.
+  try {
+    await updateStreakCache(supabase, user.id, parsed.habitId)
+  } catch (error) {
+    console.error('[habits/log] streak cache update failed', {
+      habitId: parsed.habitId,
+      userId: user.id,
+      error
+    })
+  }
 
   return log
 })

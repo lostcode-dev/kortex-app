@@ -10,6 +10,7 @@ import type {
   HabitListResponse,
   HabitReflection,
   HabitStack,
+  HabitTreeSyncNode,
   Identity,
   LogHabitPayload,
   TodayHabitsResponse,
@@ -301,6 +302,31 @@ export function useHabits() {
     }
   }
 
+  async function syncHabitTree(nodes: HabitTreeSyncNode[]): Promise<boolean> {
+    try {
+      await $fetch('/api/habits/tree', {
+        method: 'PUT',
+        body: { nodes }
+      })
+
+      toast.add({
+        title: 'Árvore atualizada',
+        description: 'A ordem e os empilhamentos dos hábitos foram sincronizados.',
+        color: 'success'
+      })
+
+      await Promise.all([refreshStacks(), refreshToday(), refreshList(), refreshInsights()])
+      return true
+    } catch {
+      toast.add({
+        title: 'Erro',
+        description: 'Não foi possível sincronizar a árvore de hábitos.',
+        color: 'error'
+      })
+      return false
+    }
+  }
+
   // ─── Helpers ────────────────────────────────────────────────────────────────
 
   const frequencyOptions = [
@@ -382,6 +408,7 @@ export function useHabits() {
     createStack,
     removeStack,
     removeStacksByTrigger,
+    syncHabitTree,
     // Helpers
     frequencyOptions,
     difficultyOptions,

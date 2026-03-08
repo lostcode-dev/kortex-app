@@ -53,8 +53,17 @@ const isToday = computed(() => {
   const today = new Date().toISOString().split('T')[0]
   return props.currentDate === today
 })
+
+function compareHabits(left: TodayHabit, right: TodayHabit): number {
+  if (left.sortOrder !== right.sortOrder) {
+    return left.sortOrder - right.sortOrder
+  }
+
+  return left.name.localeCompare(right.name, 'pt-BR')
+}
+
 const habitTrees = computed<TodayHabitTreeNode[]>(() => {
-  const visibleHabits = props.habits ?? []
+  const visibleHabits = [...(props.habits ?? [])].sort(compareHabits)
 
   if (visibleHabits.length === 0) return []
 
@@ -84,6 +93,17 @@ const habitTrees = computed<TodayHabitTreeNode[]>(() => {
   const roots: TodayHabitTreeNode[] = []
   const visited = new Set<string>()
 
+  function sortChildIds(habitIds: string[]): string[] {
+    return [...habitIds].sort((leftId, rightId) => {
+      const leftHabit = habitById.get(leftId)
+      const rightHabit = habitById.get(rightId)
+
+      if (!leftHabit || !rightHabit) return 0
+
+      return compareHabits(leftHabit, rightHabit)
+    })
+  }
+
   function buildNode(habitId: string): TodayHabitTreeNode | null {
     if (visited.has(habitId)) return null
 
@@ -92,7 +112,7 @@ const habitTrees = computed<TodayHabitTreeNode[]>(() => {
 
     visited.add(habitId)
 
-    const childIds = childrenByParent.get(habitId) ?? []
+    const childIds = sortChildIds(childrenByParent.get(habitId) ?? [])
     const children = childIds
       .map((childId) => buildNode(childId))
       .filter((child): child is TodayHabitTreeNode => child !== null)

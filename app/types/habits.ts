@@ -247,6 +247,11 @@ export interface HabitTreeNode {
   children: HabitTreeNode[]
 }
 
+export interface HabitTreeSyncNode {
+  habitId: string
+  children: HabitTreeSyncNode[]
+}
+
 export interface TodayHabitsResponse {
   habits: TodayHabit[]
   completedCount: number

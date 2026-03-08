@@ -38,6 +38,7 @@ export default eventHandler(async (event) => {
     .from('habits')
     .select('*, identity:identities(*), streak:habit_streaks(*)')
     .eq('user_id', user.id)
+    .order('sort_order', { ascending: true })
     .order('name', { ascending: true })
 
   if (params.archived) {
@@ -99,6 +100,13 @@ export default eventHandler(async (event) => {
       parentChildren.sort((left, right) => {
         const leftHabit = habitsById.get(left)
         const rightHabit = habitsById.get(right)
+        const leftSortOrder = Number(leftHabit?.sortOrder ?? 0)
+        const rightSortOrder = Number(rightHabit?.sortOrder ?? 0)
+
+        if (leftSortOrder !== rightSortOrder) {
+          return leftSortOrder - rightSortOrder
+        }
+
         return String(leftHabit?.name ?? '').localeCompare(String(rightHabit?.name ?? ''), 'pt-BR')
       })
       childrenByParent.set(parentId, parentChildren)

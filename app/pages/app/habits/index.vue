@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Habit, HabitReflection } from "~/types/habits";
+import type { Habit, HabitReflection, HabitTreeSyncNode } from "~/types/habits";
 
 definePageMeta({
   layout: "app",
@@ -34,6 +34,7 @@ const {
   stacks,
   stacksStatus,
   removeStacksByTrigger,
+  syncHabitTree,
 } = useHabits();
 
 // ─── Active tab ───────────────────────────────────────────────────────────────
@@ -131,6 +132,10 @@ async function onRemoveStack(habit: Habit) {
 function onStackHabit(habit: Habit) {
   stackSourceHabit.value = habit;
   stackCreateModalOpen.value = true;
+}
+
+async function onSyncHabitTree(nodes: HabitTreeSyncNode[]) {
+  await syncHabitTree(nodes);
 }
 
 // ─── Weekly Review ────────────────────────────────────────────────────────────
@@ -367,6 +372,7 @@ const _identityFilterOptions = computed(() => [
             @stack="onStackHabit"
             @remove-stacks="onRemoveStack"
             @archive="onArchiveHabit"
+            @sync-tree="onSyncHabitTree"
           />
         </div>
 

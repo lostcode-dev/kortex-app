@@ -182,14 +182,6 @@ function getOutgoingStackLabel(): string {
                 "{{ node.habit.log.note }}"
               </span>
             </div>
-
-            <div
-              v-if="depth > 0"
-              class="mt-1 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted"
-            >
-              <span class="inline-block h-1.5 w-1.5 rounded-full bg-primary/60" />
-              <span>Etapa da sequência</span>
-            </div>
           </div>
 
           <div class="flex items-center gap-1.5 shrink-0">
