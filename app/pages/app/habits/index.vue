@@ -17,11 +17,14 @@ const {
   listData,
   listStatus,
   listPage,
+  refreshList,
   listSearch,
   listFrequency,
   listDifficulty,
   listPageSize,
   identities,
+  identitiesStatus,
+  refreshIdentities,
   insights,
   insightsStatus,
   refreshInsights,
@@ -33,6 +36,7 @@ const {
   saveReflection,
   stacks,
   stacksStatus,
+  refreshStacks,
   removeStacksByTrigger,
   syncHabitTree,
 } = useHabits();
@@ -46,14 +50,35 @@ const tabs = [
   { label: "Revisão", value: "review", icon: "i-lucide-notebook-pen" },
 ];
 
+function ensureLoaded(
+  status: Ref<"idle" | "pending" | "success" | "error">,
+  refresh: () => Promise<unknown>,
+) {
+  if (status.value === "idle") {
+    void refresh();
+  }
+}
+
 // Load insights when tab is selected
 watch(activeTab, (tab) => {
+  ensureLoaded(insightsStatus, refreshInsights);
+
+  if (tab === "today") {
+    ensureLoaded(todayStatus, refreshToday);
+    ensureLoaded(stacksStatus, refreshStacks);
+  }
+
+  if (tab === "all") {
+    ensureLoaded(listStatus, refreshList);
+    ensureLoaded(stacksStatus, refreshStacks);
+  }
+
   if (tab === "review") {
     reviewWeekKey.value = reviewWeekKey.value || currentWeekKey.value;
     loadReflection(reviewWeekKey.value);
     loadReflectionsList(true);
   }
-});
+}, { immediate: true });
 
 // ─── Modals ───────────────────────────────────────────────────────────────────
 const createModalOpen = ref(false);
@@ -64,6 +89,25 @@ const identityModalOpen = ref(false);
 const stackCreateModalOpen = ref(false);
 const stackSourceHabit = ref<Habit | null>(null);
 const selectedHabit = ref<Habit | null>(null);
+
+watch(createModalOpen, (open) => {
+  if (open) {
+    ensureLoaded(identitiesStatus, refreshIdentities);
+  }
+});
+
+watch(identityModalOpen, (open) => {
+  if (open) {
+    ensureLoaded(identitiesStatus, refreshIdentities);
+  }
+});
+
+watch(stackCreateModalOpen, (open) => {
+  if (open) {
+    ensureLoaded(listStatus, refreshList);
+    ensureLoaded(stacksStatus, refreshStacks);
+  }
+});
 
 const ALL_FILTER_VALUE = "__all__";
 

@@ -32,6 +32,7 @@ export function useHabits() {
   } = useFetch<TodayHabitsResponse>('/api/habits/today', {
     query: { date: todayDate },
     lazy: true,
+    immediate: false,
     key: 'habits-today'
   })
 
@@ -59,6 +60,7 @@ export function useHabits() {
       archived: listArchived.value
     })),
     lazy: true,
+    immediate: false,
     key: 'habits-list',
     watch: [listPage, listPageSize, listFrequency, listDifficulty, listIdentityId, listArchived]
   })
@@ -79,6 +81,7 @@ export function useHabits() {
     refresh: refreshIdentities
   } = useFetch<Identity[]>('/api/habits/identities', {
     lazy: true,
+    immediate: false,
     key: 'habits-identities'
   })
 
@@ -89,6 +92,7 @@ export function useHabits() {
     refresh: refreshInsights
   } = useFetch<HabitInsights>('/api/habits/insights', {
     lazy: true,
+    immediate: false,
     key: 'habits-insights'
   })
 
@@ -250,6 +254,7 @@ export function useHabits() {
     refresh: refreshStacks
   } = useFetch<HabitStack[]>('/api/habits/stacks', {
     lazy: true,
+    immediate: false,
     key: 'habits-stacks'
   })
 
