@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { BaseTree } from '@he-tree/vue'
 import type { HabitStack, TodayHabit } from '~/types/habits'
+import { HabitLogStatus, LOG_STATUS_META } from '~/types/habits'
 
 interface TodayTreeNode {
   id: string
@@ -27,29 +28,34 @@ const props = defineProps<{
 const emit = defineEmits<{
   toggle: [habitId: string, completed: boolean]
   select: [habitId: string]
-  'log-with-note': [habitId: string, completed: boolean, note: string]
+  'log-with-note': [habitId: string, status: HabitLogStatus, note: string]
   'navigate-date': [direction: 'prev' | 'next']
 }>()
 
 const noteModalOpen = ref(false)
 const noteHabitId = ref<string | null>(null)
-const noteCompleted = ref(true)
 const noteText = ref('')
 
-function openNoteModal(habitId: string, completed: boolean) {
+function openNoteModal(habitId: string, _completed: boolean) {
   noteHabitId.value = habitId
-  noteCompleted.value = completed
   noteText.value = ''
   noteModalOpen.value = true
 }
 
-function submitNote() {
+function submitNote(status: HabitLogStatus) {
   if (!noteHabitId.value) return
-  emit('log-with-note', noteHabitId.value, noteCompleted.value, noteText.value)
+  emit('log-with-note', noteHabitId.value, status, noteText.value)
   noteModalOpen.value = false
   noteHabitId.value = null
   noteText.value = ''
 }
+
+const statusButtons = computed(() =>
+  Object.values(HabitLogStatus).map((s) => ({
+    status: s,
+    ...LOG_STATUS_META[s]
+  }))
+)
 
 const allDone = computed(() => props.totalCount > 0 && props.completedCount === props.totalCount)
 
@@ -310,13 +316,13 @@ function onSelectHabit(habitId: string) {
 
     <UModal
       :open="noteModalOpen"
-      title="Adicionar observação"
+      title="Registrar hábito"
       @update:open="noteModalOpen = $event"
     >
       <template #body>
         <div class="space-y-4">
           <p class="text-sm text-muted">
-            {{ noteCompleted ? 'Marcar como feito com observação:' : 'Marcar como não feito com observação:' }}
+            Adicione uma observação e escolha o status:
           </p>
           <UTextarea
             v-model="noteText"
@@ -324,7 +330,7 @@ function onSelectHabit(habitId: string) {
             class="w-full"
             :rows="3"
           />
-          <div class="flex justify-end gap-2">
+          <div class="flex flex-wrap justify-end gap-2">
             <UButton
               icon="i-lucide-x"
               label="Cancelar"
@@ -333,10 +339,12 @@ function onSelectHabit(habitId: string) {
               @click="noteModalOpen = false"
             />
             <UButton
-              icon="i-lucide-check"
-              label="Salvar"
-              :loading="false"
-              @click="submitNote"
+              v-for="btn in statusButtons"
+              :key="btn.status"
+              :icon="btn.icon"
+              :label="btn.label"
+              :color="btn.color"
+              @click="submitNote(btn.status)"
             />
           </div>
         </div>

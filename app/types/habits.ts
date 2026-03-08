@@ -17,6 +17,18 @@ export enum HabitType {
   Negative = 'negative'
 }
 
+export enum HabitLogStatus {
+  Done = 'done',
+  DoneLater = 'done_later',
+  Skipped = 'skipped'
+}
+
+export const LOG_STATUS_META: Record<HabitLogStatus, { label: string; icon: string; color: 'success' | 'warning' | 'error' }> = {
+  [HabitLogStatus.Done]: { label: 'Feito', icon: 'i-lucide-check-circle', color: 'success' },
+  [HabitLogStatus.DoneLater]: { label: 'Feito mais tarde', icon: 'i-lucide-clock', color: 'warning' },
+  [HabitLogStatus.Skipped]: { label: 'Não feito', icon: 'i-lucide-x-circle', color: 'error' }
+}
+
 export enum CueType {
   Time = 'time',
   Location = 'location',
@@ -77,6 +89,7 @@ export interface Habit {
   customDays: number[] | null
   sortOrder: number
   timezone: string | null
+  scheduledTime: string | null
   archivedAt: string | null
   createdAt: string
   updatedAt: string
@@ -147,6 +160,7 @@ export interface HabitLog {
   habitVersionId: string
   logDate: string
   completed: boolean
+  status: HabitLogStatus
   note: string | null
   createdAt: string
   updatedAt: string
@@ -169,6 +183,7 @@ export interface HabitVersion {
   customDays: number[] | null
   sortOrder: number
   timezone: string | null
+  scheduledTime: string | null
   validFrom: string
   validTo: string | null
   createdAt: string
@@ -208,6 +223,7 @@ export interface CreateHabitPayload {
   habitType?: HabitType
   identityId?: string
   customDays?: number[]
+  scheduledTime?: string
 }
 
 export interface UpdateHabitPayload {
@@ -223,12 +239,14 @@ export interface UpdateHabitPayload {
   identityId?: string | null
   customDays?: number[]
   sortOrder?: number
+  scheduledTime?: string | null
 }
 
 export interface LogHabitPayload {
   habitId: string
   logDate: string
   completed: boolean
+  status?: HabitLogStatus
   note?: string
 }
 
@@ -246,6 +264,31 @@ export interface CreateReflectionPayload {
 export interface CreateHabitStackPayload {
   triggerHabitId: string
   newHabitId: string
+}
+
+export interface HabitUserSettings {
+  userId: string
+  reviewDay: number
+  reviewReminderEnabled: boolean
+  reviewReminderTime: string
+  shareToken: string | null
+  shareEnabled: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface UpdateHabitUserSettingsPayload {
+  reviewDay?: number
+  reviewReminderEnabled?: boolean
+  reviewReminderTime?: string
+  shareEnabled?: boolean
+}
+
+export interface SharedHabitsProgress {
+  habits: { name: string; frequency: string; difficulty: string; streakCurrent: number }[]
+  completionRate7d: number
+  completionRate30d: number
+  totalHabits: number
 }
 
 // ─── API Responses ────────────────────────────────────────────────────────────

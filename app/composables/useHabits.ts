@@ -11,10 +11,13 @@ import type {
   HabitReflection,
   HabitStack,
   HabitTreeSyncNode,
+  HabitUserSettings,
   Identity,
   LogHabitPayload,
+  SharedHabitsProgress,
   TodayHabitsResponse,
   UpdateHabitPayload,
+  UpdateHabitUserSettingsPayload,
   Habit
 } from '~/types/habits'
 import { HabitDifficulty, HabitFrequency, HabitType } from '~/types/habits'
@@ -158,7 +161,8 @@ export function useHabits() {
         method: 'POST',
         body: payload
       })
-      if (payload.completed) {
+      const isCompleted = payload.status ? payload.status !== 'skipped' : payload.completed
+      if (isCompleted) {
         toast.add({ title: 'Muito bem!', description: 'Você está construindo consistência.', color: 'success' })
       }
       await refreshToday()
@@ -332,6 +336,42 @@ export function useHabits() {
     }
   }
 
+  // ─── Habit Settings ───────────────────────────────────────────────────────────
+
+  async function fetchHabitSettings(): Promise<HabitUserSettings | null> {
+    try {
+      return await $fetch<HabitUserSettings>('/api/habits/settings')
+    } catch {
+      toast.add({ title: 'Erro', description: 'Não foi possível carregar configurações.', color: 'error' })
+      return null
+    }
+  }
+
+  async function updateHabitSettings(payload: UpdateHabitUserSettingsPayload): Promise<HabitUserSettings | null> {
+    try {
+      const result = await $fetch<HabitUserSettings>('/api/habits/settings', {
+        method: 'PUT',
+        body: payload
+      })
+      toast.add({ title: 'Configurações salvas', description: 'Preferências de hábitos atualizadas.', color: 'success' })
+      return result
+    } catch {
+      toast.add({ title: 'Erro', description: 'Não foi possível salvar configurações.', color: 'error' })
+      return null
+    }
+  }
+
+  async function fetchSharedProgress(token: string): Promise<SharedHabitsProgress | null> {
+    try {
+      return await $fetch<SharedHabitsProgress>('/api/habits/share', {
+        query: { token }
+      })
+    } catch {
+      toast.add({ title: 'Erro', description: 'Link de compartilhamento inválido ou desativado.', color: 'error' })
+      return null
+    }
+  }
+
   // ─── Helpers ────────────────────────────────────────────────────────────────
 
   const frequencyOptions = [
@@ -414,6 +454,10 @@ export function useHabits() {
     removeStack,
     removeStacksByTrigger,
     syncHabitTree,
+    // Settings & Share
+    fetchHabitSettings,
+    updateHabitSettings,
+    fetchSharedProgress,
     // Helpers
     frequencyOptions,
     difficultyOptions,

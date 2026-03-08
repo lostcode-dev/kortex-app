@@ -7,6 +7,7 @@ const bodySchema = z.object({
   habitId: z.string().uuid(),
   logDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD'),
   completed: z.boolean(),
+  status: z.enum(['done', 'done_later', 'skipped']).optional(),
   note: z.string().max(500).optional()
 })
 
@@ -41,6 +42,9 @@ export default eventHandler(async (event) => {
 
   const habitVersionId = await resolveHabitVersionIdForDate(supabase, parsed.habitId, user.id, parsed.logDate)
 
+  const logStatus = parsed.status ?? (parsed.completed ? 'done' : 'skipped')
+  const isCompleted = logStatus === 'done' || logStatus === 'done_later'
+
   // Upsert log (idempotent per habit+date)
   const { data: log, error: logError } = await supabase
     .from('habit_logs')
@@ -50,7 +54,8 @@ export default eventHandler(async (event) => {
         habit_id: parsed.habitId,
         habit_version_id: habitVersionId,
         log_date: parsed.logDate,
-        completed: parsed.completed,
+        completed: isCompleted,
+        status: logStatus,
         note: parsed.note ?? null,
         updated_at: new Date().toISOString()
       },

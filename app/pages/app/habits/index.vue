@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Habit, HabitReflection, HabitTreeSyncNode } from "~/types/habits";
+import { HabitLogStatus } from "~/types/habits";
 
 definePageMeta({
   layout: "app",
@@ -132,9 +133,10 @@ async function onToggleHabit(habitId: string, completed: boolean) {
   await refreshInsights();
 }
 
-async function onLogWithNote(habitId: string, completed: boolean, note: string) {
+async function onLogWithNote(habitId: string, status: HabitLogStatus, note: string) {
   const date = todayDate.value ?? new Date().toISOString().split("T")[0]!;
-  await logHabit({ habitId, logDate: date, completed, note });
+  const completed = status !== HabitLogStatus.Skipped;
+  await logHabit({ habitId, logDate: date, completed, note, status });
   await refreshInsights();
 }
 
@@ -458,6 +460,8 @@ const _identityFilterOptions = computed(() => [
             :on-save="reviewEditable ? onSaveWeeklyReview : undefined"
             @navigate-week="navigateReviewWeek"
           />
+
+          <HabitsSettingsPanel class="mt-6" />
         </div>
       </div>
     </template>
@@ -527,13 +531,12 @@ const _identityFilterOptions = computed(() => [
    ✅ Navegar entre dias na tab de Hoje
    ✅ Adicionar observação ao marcar como feito/não feito
    ✅ Futuro no calendário não mostra status de feito/não feito
+   ✅ Escolher dia da semana para revisão (configurável por usuário)
+   ✅ Notificações/lembretes para revisão
+   ✅ Compartilhar hábitos e progresso
+   ✅ Possível adicionar um horário para cada hábito
+   ✅ Feito / Feito mais tarde / Não feito no modal de observação
 
   TODO (futuras iterações):
-   - Escolher dia da semana para revisão (configurável por usuário)
-   - Notificações/lembretes para revisão
-   - Compartilhar hábitos e progresso
-   - Definir ordem de execução dos hábitos (sort_order já está no DB)
-   - "Feito mais tarde" como status específico
-   - Responsividade avançada para mobile (já usa Tailwind/flex-wrap)
-   - Transformar o Create Habits in multi step, onde cada step guia o usuário atráves das 4 leis dos hábitos (gatilho, rotina, recompensa, crença)
+   - (nenhum item pendente no momento)
 -->

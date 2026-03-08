@@ -21,7 +21,8 @@ const bodySchema = z.object({
   habitType: z.enum(['positive', 'negative']).optional(),
   identityId: z.string().uuid().nullable().optional(),
   customDays: z.array(z.number().int().min(0).max(6)).optional(),
-  sortOrder: z.number().int().min(0).optional()
+  sortOrder: z.number().int().min(0).optional(),
+  scheduledTime: z.string().regex(/^\d{2}:\d{2}$/, 'Horário deve estar no formato HH:mm').nullable().optional()
 })
 
 /** Fields to track in change history */
@@ -38,7 +39,7 @@ export default eventHandler(async (event) => {
   // Fetch current habit to compare tracked fields
   const { data: current, error: fetchError } = await supabase
     .from('habits')
-    .select('id, user_id, identity_id, name, description, obvious_strategy, attractive_strategy, easy_strategy, satisfying_strategy, frequency, difficulty, habit_type, custom_days, sort_order, timezone')
+    .select('id, user_id, identity_id, name, description, obvious_strategy, attractive_strategy, easy_strategy, satisfying_strategy, frequency, difficulty, habit_type, custom_days, sort_order, timezone, scheduled_time')
     .eq('id', id)
     .eq('user_id', user.id)
     .single()
@@ -61,6 +62,7 @@ export default eventHandler(async (event) => {
   if (parsed.identityId !== undefined) updateData.identity_id = parsed.identityId
   if (parsed.customDays !== undefined) updateData.custom_days = parsed.customDays
   if (parsed.sortOrder !== undefined) updateData.sort_order = parsed.sortOrder
+  if (parsed.scheduledTime !== undefined) updateData.scheduled_time = parsed.scheduledTime
 
   const nextVersionCandidate = {
     ...(current as Record<string, unknown>),

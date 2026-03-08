@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TodayHabit } from '~/types/habits'
-import { DIFFICULTY_META, HABIT_TYPE_META } from '~/types/habits'
+import { DIFFICULTY_META, HABIT_TYPE_META, HabitLogStatus, LOG_STATUS_META } from '~/types/habits'
 
 interface TodayTreeNode {
   id: string
@@ -76,12 +76,23 @@ const lawHints = computed<HabitLawHint[]>(() => {
     }
   ].filter((hint): hint is HabitLawHint => Boolean(hint.text))
 })
+
+const logStatusMeta = computed(() => {
+  const status = props.node.habit.log?.status as HabitLogStatus | undefined
+  if (!status) return null
+  return LOG_STATUS_META[status] ?? null
+})
 </script>
 
 <template>
   <div
     class="today-tree-row mb-3 rounded-xl border border-default/60 p-3 shadow-sm transition-colors hover:bg-elevated/50"
-    :class="node.habit.log?.completed ? 'bg-success/5 border-success/20' : 'bg-default/70'"
+    :class="{
+      'bg-success/5 border-success/20': node.habit.log?.status === HabitLogStatus.Done,
+      'bg-warning/5 border-warning/20': node.habit.log?.status === HabitLogStatus.DoneLater,
+      'bg-error/5 border-error/20': node.habit.log?.status === HabitLogStatus.Skipped,
+      'bg-default/70': !node.habit.log?.status
+    }"
     @click="emit('select', node.habit.id)"
   >
     <div class="flex items-start gap-2.5 sm:items-center sm:gap-3">
@@ -135,6 +146,28 @@ const lawHints = computed<HabitLawHint[]>(() => {
             </div>
 
             <div class="mt-1.5 flex flex-wrap items-center gap-1.5 sm:mt-1">
+              <UBadge
+                v-if="node.habit.scheduledTime"
+                :label="node.habit.scheduledTime"
+                variant="subtle"
+                color="neutral"
+                size="xs"
+              >
+                <template #leading>
+                  <UIcon name="i-lucide-clock" class="size-3" />
+                </template>
+              </UBadge>
+              <UBadge
+                v-if="logStatusMeta && node.habit.log?.status !== HabitLogStatus.Done"
+                :label="logStatusMeta.label"
+                variant="subtle"
+                :color="logStatusMeta.color"
+                size="xs"
+              >
+                <template #leading>
+                  <UIcon :name="logStatusMeta.icon" class="size-3" />
+                </template>
+              </UBadge>
               <UBadge
                 v-if="node.habit.identity"
                 :label="node.habit.identity.name"

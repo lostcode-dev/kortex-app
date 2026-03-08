@@ -62,19 +62,24 @@ export default eventHandler(async (event) => {
   // Fetch logs for the date
   const habitIds = todayHabitsMapped.map((h) => h.id as string)
 
-  let logs: Record<string, { completed: boolean, note: string | null, id: string }> = {}
+  let logs: Record<string, { completed: boolean, status: string, note: string | null, id: string }> = {}
 
   if (habitIds.length > 0) {
     const { data: logsData } = await supabase
       .from('habit_logs')
-      .select('id, habit_id, completed, note')
+      .select('id, habit_id, completed, status, note')
       .eq('user_id', user.id)
       .eq('log_date', date)
       .in('habit_id', habitIds)
 
     if (logsData) {
       logs = Object.fromEntries(
-        logsData.map((l: Record<string, unknown>) => [l.habit_id, { completed: l.completed as boolean, note: l.note as string | null, id: l.id as string }])
+        logsData.map((l: Record<string, unknown>) => [l.habit_id, {
+          completed: l.completed as boolean,
+          status: (l.status as string) ?? (l.completed ? 'done' : 'skipped'),
+          note: l.note as string | null,
+          id: l.id as string
+        }])
       )
     }
   }

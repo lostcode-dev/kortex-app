@@ -16,7 +16,8 @@ const bodySchema = z.object({
   difficulty: z.enum(['tiny', 'normal', 'hard']).default('normal'),
   habitType: z.enum(['positive', 'negative']).default('positive'),
   identityId: z.string().uuid().optional(),
-  customDays: z.array(z.number().int().min(0).max(6)).optional()
+  customDays: z.array(z.number().int().min(0).max(6)).optional(),
+  scheduledTime: z.string().regex(/^\d{2}:\d{2}$/, 'Horário deve estar no formato HH:mm').optional()
 }).refine(
   data => data.frequency !== 'custom' || (data.customDays && data.customDays.length > 0),
   { message: 'Selecione ao menos um dia para frequência personalizada', path: ['customDays'] }
@@ -44,7 +45,8 @@ export default eventHandler(async (event) => {
       difficulty: parsed.difficulty,
       habit_type: parsed.habitType,
       identity_id: parsed.identityId ?? null,
-      custom_days: parsed.customDays ?? null
+      custom_days: parsed.customDays ?? null,
+      scheduled_time: parsed.scheduledTime ?? null
     })
     .select('*')
     .single()

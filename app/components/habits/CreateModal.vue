@@ -49,6 +49,7 @@ const schema = z
     habitType: z.nativeEnum(HabitType).default(HabitType.Positive),
     identityId: z.string().uuid().optional(),
     customDays: z.array(z.number().int().min(0).max(6)).optional(),
+    scheduledTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato HH:mm').optional(),
   })
   .refine(
     (data) =>
@@ -71,6 +72,7 @@ const state = reactive<Partial<Schema>>({
   habitType: HabitType.Positive,
   identityId: undefined,
   customDays: [],
+  scheduledTime: undefined,
 });
 
 const loading = ref(false);
@@ -108,6 +110,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       attractiveStrategy: normalizeRichText(event.data.attractiveStrategy),
       easyStrategy: normalizeRichText(event.data.easyStrategy),
       satisfyingStrategy: normalizeRichText(event.data.satisfyingStrategy),
+      scheduledTime: event.data.scheduledTime || undefined,
     });
     if (result) {
       resetForm();
@@ -130,6 +133,7 @@ function resetForm() {
   state.habitType = HabitType.Positive;
   state.identityId = undefined;
   state.customDays = [];
+  state.scheduledTime = undefined;
   activeFormTab.value = "main";
 }
 
@@ -313,6 +317,15 @@ function getHabitTypeIcon(habitType: HabitType) {
                 @click="emit('identityModalOpen', true)"
               />
             </div>
+
+            <UFormField label="Horário programado" name="scheduledTime">
+              <UInput
+                v-model="state.scheduledTime"
+                type="time"
+                placeholder="HH:mm"
+                class="w-full"
+              />
+            </UFormField>
           </div>
 
           <div v-else class="space-y-4">
