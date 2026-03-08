@@ -174,7 +174,6 @@ function setSelectValue(key: string, val: string) {
           label="Sim"
           @update:model-value="setBooleanValue(def.key, Boolean($event))"
           size="sm"
-          class="h-8 w-8"
         />
 
         <!-- Select -->

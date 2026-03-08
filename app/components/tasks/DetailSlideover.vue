@@ -213,7 +213,6 @@ function formatDueDate(dateStr: string): string {
                 :model-value="subtask.completed"
                 @update:model-value="onToggleSubtask(subtask)"
                 size="sm"
-                class="h-8 w-8"
               />
               <span
                 class="flex-1 text-sm"

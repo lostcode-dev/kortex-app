@@ -122,7 +122,6 @@ function onClose() {
           label="Incluir contexto técnico automaticamente"
           description="Envia rota atual, resolução e user agent para ajudar na análise."
           size="sm"
-          class="h-8 w-8"
         />
 
         <div class="flex justify-end gap-2 pt-2">

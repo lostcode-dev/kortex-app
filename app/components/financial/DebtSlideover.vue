@@ -176,7 +176,6 @@ function getProgress(): number {
                   :model-value="inst.paid"
                   @update:model-value="onTogglePaid(inst)"
                   size="sm"
-                  class="h-8 w-8"
                 />
                 <div>
                   <p class="text-sm font-medium" :class="{ 'line-through': inst.paid }">
