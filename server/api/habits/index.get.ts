@@ -38,7 +38,7 @@ export default eventHandler(async (event) => {
     .from('habits')
     .select('*, identity:identities(*), streak:habit_streaks(*)', { count: 'exact' })
     .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
+    .order('name', { ascending: true })
     .range(from, to)
 
   if (params.archived) {
