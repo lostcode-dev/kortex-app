@@ -247,7 +247,7 @@ function onAfterDrop() {
                 class="habit-tree-row mb-3 rounded-xl border border-default/60 bg-default/70 p-3 shadow-sm transition-colors hover:bg-elevated/50"
                 @click="emit('select', node.habit.id)"
               >
-                <div class="flex items-start gap-3">
+                <div class="flex items-start gap-2.5 sm:gap-3">
                   <div class="flex items-center gap-1 pt-0.5">
                     <button
                       v-if="node.children.length"
@@ -278,13 +278,17 @@ function onAfterDrop() {
                   />
 
                   <div class="min-w-0 flex-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <p class="truncate font-medium text-highlighted">
+                    <div class="flex items-start justify-between gap-2">
+                      <p class="min-w-0 text-sm font-medium leading-5 text-highlighted sm:truncate sm:text-base">
                         {{ node.habit.name }}
                       </p>
+
+                      <UDropdownMenu class="shrink-0 sm:hidden" :items="getRowItems(node.habit)" :content="{ align: 'end' }">
+                        <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="ghost" size="xs" @click.stop />
+                      </UDropdownMenu>
                     </div>
 
-                    <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                    <div class="mt-1.5 flex flex-wrap items-center gap-1.5 sm:mt-1">
                       <UBadge
                         v-if="node.habit.identity"
                         :label="node.habit.identity.name"
@@ -304,10 +308,25 @@ function onAfterDrop() {
                       >
                         {{ node.habit.customDays.map((day: number) => dayLabels[day]).join(', ') }}
                       </span>
+
+                      <UBadge class="sm:hidden" :color="DIFFICULTY_META[node.habit.difficulty].color" variant="subtle" size="xs">
+                        <template #leading>
+                          <UIcon :name="DIFFICULTY_META[node.habit.difficulty].icon" class="size-3" />
+                        </template>
+                        {{ DIFFICULTY_META[node.habit.difficulty].label }}
+                      </UBadge>
+
+                      <div
+                        v-if="node.habit.streak && node.habit.streak.currentStreak > 0"
+                        class="flex items-center gap-1 text-xs text-muted sm:hidden"
+                      >
+                        <UIcon name="i-lucide-flame" class="size-3.5 text-orange-500" />
+                        <span>{{ node.habit.streak.currentStreak }}d</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div class="flex shrink-0 items-center gap-2">
+                  <div class="hidden shrink-0 items-center gap-2 sm:flex">
                     <UBadge :color="DIFFICULTY_META[node.habit.difficulty].color" variant="subtle" size="xs">
                       <template #leading>
                         <UIcon :name="DIFFICULTY_META[node.habit.difficulty].icon" class="size-3" />

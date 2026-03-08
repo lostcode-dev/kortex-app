@@ -270,86 +270,109 @@ function onTreeClosed(stat: TreeStat) {
               :class="node.habit.log?.completed ? 'bg-success/5 border-success/20' : 'bg-default/70'"
               @click="emit('select', node.habit.id)"
             >
-              <div class="flex items-center gap-3">
+              <div class="flex items-start gap-2.5 sm:items-center sm:gap-3">
                 <!-- Expand/collapse -->
-                <button
-                  v-if="node.children.length"
-                  type="button"
-                  class="inline-flex size-7 items-center justify-center rounded-md text-muted transition hover:bg-muted/60 hover:text-highlighted"
-                  @click.stop="stat.open = !stat.open"
-                >
-                  <UIcon :name="stat.open ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="size-4" />
-                </button>
-                <span v-else class="inline-flex size-7 items-center justify-center text-muted">
-                  <span class="h-1.5 w-1.5 rounded-full bg-primary/60" />
-                </span>
-
-                <!-- Checkbox -->
-                <UCheckbox
-                  :model-value="node.habit.log?.completed ?? false"
-                  @click.stop
-                  size="sm"
-                  @update:model-value="emit('toggle', node.habit.id, $event as boolean)"
-                />
-
-                <!-- Type icon -->
-                <UIcon
-                  :name="HABIT_TYPE_META[node.habit.habitType ?? 'positive'].icon"
-                  class="size-4 shrink-0"
-                  :class="node.habit.habitType === 'negative' ? 'text-error' : 'text-success'"
-                />
-
-                <!-- Habit info -->
-                <div class="flex-1 min-w-0">
-                  <p
-                    class="font-medium truncate"
-                    :class="node.habit.log?.completed ? 'line-through text-muted' : 'text-highlighted'"
+                <div class="flex items-center gap-1 pt-0.5 sm:pt-0">
+                  <button
+                    v-if="node.children.length"
+                    type="button"
+                    class="inline-flex size-7 items-center justify-center rounded-md text-muted transition hover:bg-muted/60 hover:text-highlighted"
+                    @click.stop="stat.open = !stat.open"
                   >
-                    {{ node.habit.name }}
-                  </p>
-                  <div class="mt-1 flex flex-wrap items-center gap-1.5">
-                    <UBadge
-                      v-if="node.habit.identity"
-                      :label="node.habit.identity.name"
-                      variant="subtle"
-                      color="primary"
-                      size="xs"
-                    />
-                    <span v-if="node.habit.log?.note" class="max-w-40 truncate text-xs italic text-muted">
-                      "{{ node.habit.log.note }}"
-                    </span>
-                  </div>
+                    <UIcon :name="stat.open ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="size-4" />
+                  </button>
+                  <span v-else class="inline-flex size-7 items-center justify-center text-muted">
+                    <span class="h-1.5 w-1.5 rounded-full bg-primary/60" />
+                  </span>
+
+                  <UCheckbox
+                    :model-value="node.habit.log?.completed ?? false"
+                    @click.stop
+                    size="sm"
+                    @update:model-value="emit('toggle', node.habit.id, $event as boolean)"
+                  />
                 </div>
 
-                <!-- Right side: difficulty, streak, note button -->
-                <div class="flex items-center gap-1.5 shrink-0">
-                  <UBadge
-                    :color="DIFFICULTY_META[node.habit.difficulty].color"
-                    variant="subtle"
-                    size="xs"
-                  >
-                    <template #leading>
-                      <UIcon :name="DIFFICULTY_META[node.habit.difficulty].icon" class="size-3" />
-                    </template>
-                    {{ DIFFICULTY_META[node.habit.difficulty].label }}
-                  </UBadge>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-start gap-2">
+                    <UIcon
+                      :name="HABIT_TYPE_META[node.habit.habitType ?? 'positive'].icon"
+                      class="mt-1 size-4 shrink-0"
+                      :class="node.habit.habitType === 'negative' ? 'text-error' : 'text-success'"
+                    />
 
-                  <div
-                    v-if="node.habit.streak && node.habit.streak.currentStreak > 0"
-                    class="flex items-center gap-1 text-xs text-muted"
-                  >
-                    <UIcon name="i-lucide-flame" class="size-3.5 text-orange-500" />
-                    <span>{{ node.habit.streak.currentStreak }}</span>
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-start justify-between gap-2">
+                        <p
+                          class="min-w-0 text-sm font-medium leading-5 text-highlighted sm:truncate sm:text-base"
+                          :class="node.habit.log?.completed ? 'line-through text-muted' : 'text-highlighted'"
+                        >
+                          {{ node.habit.name }}
+                        </p>
+
+                        <UButton
+                          class="shrink-0 sm:hidden"
+                          :icon="node.habit.log?.completed ? 'i-lucide-message-square' : 'i-lucide-message-square-plus'"
+                          color="neutral"
+                          variant="ghost"
+                          size="xs"
+                          :aria-label="node.habit.log?.completed ? 'Adicionar nota (feito)' : 'Marcar como não feito com nota'"
+                          @click.stop="openNoteModal(node.habit.id, !(node.habit.log?.completed ?? false))"
+                        />
+                      </div>
+
+                      <div class="mt-1.5 flex flex-wrap items-center gap-1.5 sm:mt-1">
+                        <UBadge
+                          v-if="node.habit.identity"
+                          :label="node.habit.identity.name"
+                          variant="subtle"
+                          color="primary"
+                          size="xs"
+                        />
+                        <UBadge
+                          class="sm:hidden"
+                          :color="DIFFICULTY_META[node.habit.difficulty].color"
+                          variant="subtle"
+                          size="xs"
+                        >
+                          <template #leading>
+                            <UIcon :name="DIFFICULTY_META[node.habit.difficulty].icon" class="size-3" />
+                          </template>
+                          {{ DIFFICULTY_META[node.habit.difficulty].label }}
+                        </UBadge>
+                        <div
+                          v-if="node.habit.streak && node.habit.streak.currentStreak > 0"
+                          class="flex items-center gap-1 text-xs text-muted sm:hidden"
+                        >
+                          <UIcon name="i-lucide-flame" class="size-3.5 text-orange-500" />
+                          <span>{{ node.habit.streak.currentStreak }}</span>
+                        </div>
+                      </div>
+
+                      <div v-if="node.habit.log?.note" class="mt-2 rounded-lg border border-default/60 bg-default/40 px-2.5 py-2 text-xs italic text-muted">
+                        "{{ node.habit.log.note }}"
+                      </div>
+                    </div>
                   </div>
 
-                  <UButton
-                    :icon="node.habit.log?.completed ? 'i-lucide-message-square' : 'i-lucide-message-square-plus'"
-                    color="neutral"
-                    variant="ghost"
-                    size="xs"
-                    :aria-label="node.habit.log?.completed ? 'Adicionar nota (feito)' : 'Marcar como não feito com nota'"
-                    @click.stop="openNoteModal(node.habit.id, !(node.habit.log?.completed ?? false))"
-                  />
+                  <div class="mt-2 hidden items-center justify-end gap-1.5 sm:flex">
+                    <div
+                      v-if="node.habit.streak && node.habit.streak.currentStreak > 0"
+                      class="flex items-center gap-1 text-xs text-muted"
+                    >
+                      <UIcon name="i-lucide-flame" class="size-3.5 text-orange-500" />
+                      <span>{{ node.habit.streak.currentStreak }}</span>
+                    </div>
+
+                    <UButton
+                      :icon="node.habit.log?.completed ? 'i-lucide-message-square' : 'i-lucide-message-square-plus'"
+                      color="neutral"
+                      variant="ghost"
+                      size="xs"
+                      :aria-label="node.habit.log?.completed ? 'Adicionar nota (feito)' : 'Marcar como não feito com nota'"
+                      @click.stop="openNoteModal(node.habit.id, !(node.habit.log?.completed ?? false))"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
