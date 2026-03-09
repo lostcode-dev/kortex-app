@@ -220,7 +220,7 @@ onMounted(async () => {
 
     <UDashboardSearch :groups="groups" />
 
-    <div class="app-content-with-bottom-nav w-full min-w-0">
+    <div class="app-content-with-bottom-nav flex min-h-0 flex-1 flex-col w-full min-w-0 overflow-hidden">
       <slot />
     </div>
 

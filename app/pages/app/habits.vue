@@ -590,4 +590,8 @@ const _identityFilterOptions = computed(() => [
  - Está com algum cálculo errado no Streak
  - Tem que ter o histórico do empilhamento para conseguir exibir dados do passado
  - O loading quando mudo o empilhamento deve ser feito por de baixo dos panos, sem exibir o skeleton
+ - Precisa de alguma rotina para no fim do dia os hábitos que não foram marcados como feitos, sejam marcados como não feitos (skipped)
+ - Verificar o fluxo de "Identificadores".
+ - Ta sem scroll na quando o conteúdo nas telas está maior no eixo y.
+ - As estáticas de hábitos no topo não está legal, porque está ocupando o espaço na tela, o principal deveri ser gerenciar os hábitos.
 -->

@@ -92,6 +92,10 @@ body.keyboard-open .mobile-bottom-nav {
   border-top-color: var(--ui-color-neutral-800);
 }
 
+.app-content-with-bottom-nav {
+  min-height: 0;
+}
+
 /* Offset main content so it's not hidden behind bottom nav */
 @media (max-width: 1023px) {
   .app-content-with-bottom-nav {
