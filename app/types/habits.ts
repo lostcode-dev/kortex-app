@@ -19,13 +19,11 @@ export enum HabitType {
 
 export enum HabitLogStatus {
   Done = 'done',
-  DoneLater = 'done_later',
   Skipped = 'skipped'
 }
 
 export const LOG_STATUS_META: Record<HabitLogStatus, { label: string; icon: string; color: 'success' | 'warning' | 'error' }> = {
   [HabitLogStatus.Done]: { label: 'Feito', icon: 'i-lucide-check-circle', color: 'success' },
-  [HabitLogStatus.DoneLater]: { label: 'Feito mais tarde', icon: 'i-lucide-clock', color: 'warning' },
   [HabitLogStatus.Skipped]: { label: 'Não feito', icon: 'i-lucide-x-circle', color: 'error' }
 }
 

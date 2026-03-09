@@ -17,7 +17,8 @@ interface HabitLawHint {
   key: string
   label: string
   icon: string
-  text: string
+  html: string
+  plainText: string
 }
 
 const props = defineProps<{
@@ -31,7 +32,19 @@ const emit = defineEmits<{
   'open-note': [habitId: string, completed: boolean]
 }>()
 
-function normalizeLawText(value: string | null | undefined): string | null {
+function normalizeLawHtml(value: string | null | undefined): string | null {
+  if (!value) return null
+
+  const normalized = value
+    .replace(/&nbsp;/g, ' ')
+    .trim()
+
+  if (!normalized) return null
+
+  return normalized
+}
+
+function toPlainText(value: string | null | undefined): string | null {
   if (!value) return null
 
   const plainText = value
@@ -42,8 +55,7 @@ function normalizeLawText(value: string | null | undefined): string | null {
 
   if (!plainText) return null
 
-  if (plainText.length <= 140) return plainText
-  return `${plainText.slice(0, 137)}...`
+  return plainText
 }
 
 const lawHints = computed<HabitLawHint[]>(() => {
@@ -52,29 +64,33 @@ const lawHints = computed<HabitLawHint[]>(() => {
   return [
     {
       key: 'obvious',
-      label: 'Lei 1: Tornar obvio',
+      label: 'Tornar obvio',
       icon: 'i-lucide-eye',
-      text: normalizeLawText(habit.obviousStrategy)
+      html: normalizeLawHtml(habit.obviousStrategy),
+      plainText: toPlainText(habit.obviousStrategy)
     },
     {
       key: 'attractive',
-      label: 'Lei 2: Tornar atraente',
+      label: 'Tornar atraente',
       icon: 'i-lucide-sparkles',
-      text: normalizeLawText(habit.attractiveStrategy)
+      html: normalizeLawHtml(habit.attractiveStrategy),
+      plainText: toPlainText(habit.attractiveStrategy)
     },
     {
       key: 'easy',
-      label: 'Lei 3: Tornar facil',
+      label: 'Tornar facil',
       icon: 'i-lucide-feather',
-      text: normalizeLawText(habit.easyStrategy)
+      html: normalizeLawHtml(habit.easyStrategy),
+      plainText: toPlainText(habit.easyStrategy)
     },
     {
       key: 'satisfying',
-      label: 'Lei 4: Tornar satisfatorio',
+      label: 'Tornar satisfatorio',
       icon: 'i-lucide-trophy',
-      text: normalizeLawText(habit.satisfyingStrategy)
+      html: normalizeLawHtml(habit.satisfyingStrategy),
+      plainText: toPlainText(habit.satisfyingStrategy)
     }
-  ].filter((hint): hint is HabitLawHint => Boolean(hint.text))
+  ].filter((hint): hint is HabitLawHint => Boolean(hint.html && hint.plainText))
 })
 
 const logStatusMeta = computed(() => {
@@ -89,7 +105,6 @@ const logStatusMeta = computed(() => {
     class="today-tree-row mb-3 rounded-xl border border-default/60 p-3 shadow-sm transition-colors hover:bg-elevated/50"
     :class="{
       'bg-success/5 border-success/20': node.habit.log?.status === HabitLogStatus.Done,
-      'bg-warning/5 border-warning/20': node.habit.log?.status === HabitLogStatus.DoneLater,
       'bg-error/5 border-error/20': node.habit.log?.status === HabitLogStatus.Skipped,
       'bg-default/70': !node.habit.log?.status
     }"
@@ -178,16 +193,25 @@ const logStatusMeta = computed(() => {
               <UTooltip
                 v-for="hint in lawHints"
                 :key="hint.key"
-                :text="`${hint.label}: ${hint.text}`"
+                :content="{ side: 'top', align: 'center' }"
               >
                 <button
                   type="button"
                   class="inline-flex size-6 items-center justify-center rounded-md border border-default/60 bg-default/40 text-muted transition hover:border-primary/40 hover:text-highlighted"
-                  :aria-label="`${hint.label}: ${hint.text}`"
+                  :aria-label="`${hint.label}: ${hint.plainText}`"
                   @click.stop
                 >
                   <UIcon :name="hint.icon" class="size-3.5" />
                 </button>
+
+                <template #content>
+                  <div class="habit-law-tooltip max-w-80 whitespace-normal break-words rounded-lg border border-default/70 bg-default px-3 py-2 text-sm leading-5 text-toned shadow-lg">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-highlighted">
+                      {{ hint.label }}
+                    </p>
+                    <div class="habit-law-tooltip__content" v-html="hint.html" />
+                  </div>
+                </template>
               </UTooltip>
               <UBadge
                 class="sm:hidden"
@@ -248,3 +272,53 @@ const logStatusMeta = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.habit-law-tooltip__content :deep(*) {
+  white-space: normal;
+}
+
+.habit-law-tooltip__content :deep(p) {
+  margin: 0;
+}
+
+.habit-law-tooltip__content :deep(p + p),
+.habit-law-tooltip__content :deep(ul + p),
+.habit-law-tooltip__content :deep(ol + p),
+.habit-law-tooltip__content :deep(blockquote + p),
+.habit-law-tooltip__content :deep(p + ul),
+.habit-law-tooltip__content :deep(p + ol) {
+  margin-top: 0.5rem;
+}
+
+.habit-law-tooltip__content :deep(ul),
+.habit-law-tooltip__content :deep(ol) {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.habit-law-tooltip__content :deep(li + li) {
+  margin-top: 0.25rem;
+}
+
+.habit-law-tooltip__content :deep(strong) {
+  color: var(--ui-text-highlighted);
+  font-weight: 600;
+}
+
+.habit-law-tooltip__content :deep(em) {
+  font-style: italic;
+}
+
+.habit-law-tooltip__content :deep(a) {
+  color: var(--ui-primary);
+  text-decoration: underline;
+}
+
+.habit-law-tooltip__content :deep(blockquote) {
+  margin: 0.5rem 0 0;
+  border-left: 2px solid var(--ui-border);
+  padding-left: 0.75rem;
+  color: var(--ui-text-muted);
+}
+</style>

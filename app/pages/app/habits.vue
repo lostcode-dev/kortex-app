@@ -581,3 +581,13 @@ const _identityFilterOptions = computed(() => [
     @update:open="settingsModalOpen = $event"
   />
 </template>
+
+
+<!--
+ - Na imagem de compartilhar para as redes sociais, ainda contém muita informação pessoal e os dados estão incorretos.
+ - Ao clickar em compartilhar na listagem de hábitos, não está abrindo o modal.
+ - Pensar sobre a integração com IA para análise de hábitos e sugestões de melhorias.
+ - Está com algum cálculo errado no Streak
+ - Tem que ter o histórico do empilhamento para conseguir exibir dados do passado
+ - O loading quando mudo o empilhamento deve ser feito por de baixo dos panos, sem exibir o skeleton
+-->
