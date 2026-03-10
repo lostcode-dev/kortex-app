@@ -31,54 +31,54 @@ const links = [
         open.value = false
       }
     },
-    {
-      label: 'Metas',
-      icon: 'i-lucide-target',
-      to: '/app/goals',
-      onSelect: () => {
-        open.value = false
-      }
-    },
-    {
-      label: 'Tarefas',
-      icon: 'i-lucide-check-square',
-      to: '/app/tasks',
-      onSelect: () => {
-        open.value = false
-      }
-    },
-    {
-      label: 'Diário',
-      icon: 'i-lucide-book-open',
-      to: '/app/journal',
-      onSelect: () => {
-        open.value = false
-      }
-    },
-    {
-      label: 'Finanças',
-      icon: 'i-lucide-wallet',
-      to: '/app/financial',
-      onSelect: () => {
-        open.value = false
-      }
-    },
-    {
-      label: 'Conhecimento',
-      icon: 'i-lucide-brain',
-      to: '/app/knowledge',
-      onSelect: () => {
-        open.value = false
-      }
-    },
-    {
-      label: 'Ideias',
-      icon: 'i-lucide-lightbulb',
-      to: '/app/ideas',
-      onSelect: () => {
-        open.value = false
-      }
-    },
+    //{
+    //  label: 'Metas',
+    //  icon: 'i-lucide-target',
+    //  to: '/app/goals',
+    //  onSelect: () => {
+    //    open.value = false
+    //  }
+    //},
+    //{
+    //  label: 'Tarefas',
+    //  icon: 'i-lucide-check-square',
+    //  to: '/app/tasks',
+    //  onSelect: () => {
+    //    open.value = false
+    //  }
+    //},
+    //{
+    //  label: 'Diário',
+    //  icon: 'i-lucide-book-open',
+    //  to: '/app/journal',
+    //  onSelect: () => {
+    //    open.value = false
+    //  }
+    //},
+    //{
+    //  label: 'Finanças',
+    //  icon: 'i-lucide-wallet',
+    //  to: '/app/financial',
+    //  onSelect: () => {
+    //    open.value = false
+    //  }
+    //},
+    //{
+    //  label: 'Conhecimento',
+    //  icon: 'i-lucide-brain',
+    //  to: '/app/knowledge',
+    //  onSelect: () => {
+    //    open.value = false
+    //  }
+    //},
+    //{
+    //  label: 'Ideias',
+    //  icon: 'i-lucide-lightbulb',
+    //  to: '/app/ideas',
+    //  onSelect: () => {
+    //    open.value = false
+    //  }
+    //},
     {
       label: 'Configurações',
       to: '/app/settings',

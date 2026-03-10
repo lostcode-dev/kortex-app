@@ -23,7 +23,6 @@ const {
   listFrequency,
   listDifficulty,
   listPageSize,
-  identities,
   identitiesStatus,
   refreshIdentities,
   insights,
@@ -355,11 +354,6 @@ const difficultyFilterOptions = computed(() => [
   { label: "Todas", value: ALL_FILTER_VALUE },
   ...difficultyOptions,
 ]);
-
-const _identityFilterOptions = computed(() => [
-  { label: "Todas", value: ALL_FILTER_VALUE },
-  ...(identities.value ?? []).map((i) => ({ label: i.name, value: i.id })),
-]);
 </script>
 
 <template>
@@ -582,8 +576,8 @@ const _identityFilterOptions = computed(() => [
   />
 </template>
 
-
 <!--
+  TO DO:
  - Na imagem de compartilhar para as redes sociais, ainda contém muita informação pessoal e os dados estão incorretos.
  - Ao clickar em compartilhar na listagem de hábitos, não está abrindo o modal.
  - Pensar sobre a integração com IA para análise de hábitos e sugestões de melhorias.
@@ -591,7 +585,15 @@ const _identityFilterOptions = computed(() => [
  - Tem que ter o histórico do empilhamento para conseguir exibir dados do passado
  - O loading quando mudo o empilhamento deve ser feito por de baixo dos panos, sem exibir o skeleton
  - Precisa de alguma rotina para no fim do dia os hábitos que não foram marcados como feitos, sejam marcados como não feitos (skipped)
- - Verificar o fluxo de "Identificadores".
- - Ta sem scroll na quando o conteúdo nas telas está maior no eixo y.
- - As estáticas de hábitos no topo não está legal, porque está ocupando o espaço na tela, o principal deveri ser gerenciar os hábitos.
+ - Verificar o fluxo de "Identificadores", tem muitos bugs.
+ - As estáticas de hábitos no topo não está legal, porque está ocupando o espaço na tela, o principal deveri ser gerenciar os hábitos. Pode ficar em uma nova tab de "Insights" ou algo do tipo.
+ - Adicionar na nova tab de "Insights", gráficos e análises mais detalhadas sobre os hábitos, algo também como o quadro do github de commits, quanto mais hábitos concluídos em um dia mais verde vai ficando o dia, como evolução ao longo do tempo, correlações entre hábitos, etc.
+ - Melhorar o layout da linha na Tab de "Hoje".
+ - Adicionar horário final no hábito, porque pode exibir na minha agenda. (pensar no melhor fluxo de integração entre hábitos e agenda)
+ - o menu bubble do componente de Rich Text está cortando no input.
+ - Dificuldade e tipo tem que ficar em linhas diferentes
+ - De vez em quando está sendo deslogado do nada.
+ - Corrigir o processo de autenticação, porque estou tendo que fazer login o tempo todo e minha sessão não está ficando guardada.
+ - Possibilidade de adicionar "tags" nos hábitos para facilitar a organização e filtragem.
+ - Remover o template que tem no modal de criação de hábito.
 -->
