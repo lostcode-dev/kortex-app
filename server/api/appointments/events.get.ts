@@ -16,6 +16,10 @@ export default eventHandler(async (event) => {
   const user = await requireAuthUser(event)
   const query = getQuery(event)
   const params = querySchema.parse(query)
+  const rangeStart = params.from ? new Date(`${params.from}T00:00:00.000`) : null
+  const rangeEnd = params.to ? new Date(`${params.to}T23:59:59.999`) : null
+  const rangeStartIso = rangeStart?.toISOString()
+  const rangeEndIso = rangeEnd?.toISOString()
 
   const supabase = getSupabaseAdminClient()
 
@@ -44,11 +48,11 @@ export default eventHandler(async (event) => {
     .in('calendar_id', calendarIds)
     .is('archived_at', null)
 
-  if (params.from) {
-    queryBuilder = queryBuilder.gte('end_at', params.from)
+  if (rangeStartIso) {
+    queryBuilder = queryBuilder.gte('end_at', rangeStartIso)
   }
-  if (params.to) {
-    queryBuilder = queryBuilder.lte('start_at', params.to)
+  if (rangeEndIso) {
+    queryBuilder = queryBuilder.lte('start_at', rangeEndIso)
   }
   if (params.q) {
     queryBuilder = queryBuilder.or(`title.ilike.%${params.q}%,description.ilike.%${params.q}%,location.ilike.%${params.q}%`)
@@ -106,16 +110,14 @@ export default eventHandler(async (event) => {
 
   for (const evt of events) {
     const e = evt as Record<string, unknown>
-    if (!e.rrule && params.from && params.to) {
+    if (!e.rrule && rangeStartIso && rangeEndIso) {
       expandedEvents.push({
         ...(e as unknown as ExpandedEvent),
         is_recurring: false,
         recurrence_id: null,
         is_cancelled: false
       })
-    } else if (e.rrule && params.from && params.to) {
-      const rangeStart = new Date(params.from)
-      const rangeEnd = new Date(params.to)
+    } else if (e.rrule && rangeStart && rangeEnd) {
       const duration = new Date(e.end_at as string).getTime() - new Date(e.start_at as string).getTime()
 
       const occurrences = expandRecurrence(

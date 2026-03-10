@@ -62,9 +62,13 @@ function emitRange() {
   gridEnd.setDate(gridEnd.getDate() + remaining)
 
   emit('monthChange',
-    gridStart.toISOString().split('T')[0] ?? '',
-    gridEnd.toISOString().split('T')[0] ?? ''
+    formatDate(gridStart),
+    formatDate(gridEnd)
   )
+}
+
+function formatDate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 // ─── Calendar grid ────────────────────────────────────────────────────────
@@ -141,9 +145,7 @@ function onEventClick(evt: CalendarEvent, e: MouseEvent) {
 }
 
 function getEventColor(evt: CalendarEvent): string {
-  const calObj = evt as unknown as Record<string, unknown>
-  const calendars = calObj.calendars as Record<string, unknown> | undefined
-  return (calendars?.color as string) ?? '#10b981'
+  return evt.calendar?.color ?? '#10b981'
 }
 
 // Emit initial range

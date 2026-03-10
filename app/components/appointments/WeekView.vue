@@ -114,9 +114,7 @@ const weekDays = computed((): DayColumn[] => {
 })
 
 function getEventColor(evt: CalendarEvent): string {
-  const calObj = evt as unknown as Record<string, unknown>
-  const calendars = calObj.calendars as Record<string, unknown> | undefined
-  return (calendars?.color as string) ?? '#10b981'
+  return evt.calendar?.color ?? '#10b981'
 }
 
 function formatTime(dateStr: string): string {

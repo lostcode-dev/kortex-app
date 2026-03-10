@@ -56,6 +56,9 @@ export interface CalendarEvent {
   calendar?: Calendar
   reminders?: EventReminder[]
   exceptions?: EventException[]
+  recurrenceId?: string | null
+  isRecurring?: boolean
+  isCancelled?: boolean
 }
 
 export interface EventException {

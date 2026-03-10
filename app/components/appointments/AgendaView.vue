@@ -36,11 +36,16 @@ const groupedEvents = computed((): EventGroup[] => {
   const sortedDates = Object.keys(groups).sort()
   return sortedDates.map(dateStr => ({
     dateStr,
-    dateLabel: formatDateLabel(new Date(dateStr + 'T12:00:00')),
+    dateLabel: formatDateLabel(parseLocalDate(dateStr)),
     isToday: dateStr === todayStr,
     events: groups[dateStr] ?? []
   }))
 })
+
+function parseLocalDate(dateStr: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  return new Date(year ?? 0, (month ?? 1) - 1, day ?? 1)
+}
 
 function formatDate(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -68,15 +73,11 @@ function getTimeRange(evt: CalendarEvent): string {
 }
 
 function getEventColor(evt: CalendarEvent): string {
-  const calObj = evt as unknown as Record<string, unknown>
-  const calendars = calObj.calendars as Record<string, unknown> | undefined
-  return (calendars?.color as string) ?? '#10b981'
+  return evt.calendar?.color ?? '#10b981'
 }
 
 function getCalendarName(evt: CalendarEvent): string {
-  const calObj = evt as unknown as Record<string, unknown>
-  const calendars = calObj.calendars as Record<string, unknown> | undefined
-  return (calendars?.name as string) ?? ''
+  return evt.calendar?.name ?? ''
 }
 </script>
 

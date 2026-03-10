@@ -612,6 +612,11 @@ const difficultyFilterOptions = computed(() => [
  - Possibilidade de adicionar "tags" nos hábitos para facilitar a organização e filtragem.
  - Remover o template que tem no modal de criação de hábito.
 
+ - Personalizar o scroll para ficar mais bonito e consistente com o design do app.
+ - HourPicker no modal está abrindo atrás do modal.
+ - Aumentar tamanho do modal de hábitos, porque tem bastante espaço vazio.
+ - Melhorar insights, muito espaço disponível e mais informações relevantes, e também responsivo.
+
  Backlog:
   - Pensar sobre a integração com IA para análise de hábitos e sugestões de melhorias.
 -->

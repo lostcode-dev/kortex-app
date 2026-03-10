@@ -2,6 +2,10 @@ import { useDebounceFn } from '@vueuse/core'
 import type {
   Calendar,
   CalendarEvent,
+  EventException,
+  EventReminder,
+  ExceptionType,
+  CalendarVisibility,
   CreateCalendarPayload,
   CreateEventPayload,
   UpdateCalendarPayload,
@@ -17,6 +21,83 @@ interface EventsResponse {
   pageSize: number
 }
 
+function normalizeCalendar(input: unknown): Calendar {
+  const calendar = (input ?? {}) as Record<string, unknown>
+
+  return {
+    id: String(calendar.id ?? ''),
+    ownerUserId: String(calendar.ownerUserId ?? calendar.owner_user_id ?? ''),
+    name: String(calendar.name ?? ''),
+    description: (calendar.description as string | null) ?? null,
+    color: (calendar.color as string | null) ?? null,
+    visibility: String(calendar.visibility ?? 'private') as CalendarVisibility,
+    createdAt: String(calendar.createdAt ?? calendar.created_at ?? ''),
+    updatedAt: String(calendar.updatedAt ?? calendar.updated_at ?? ''),
+    archivedAt: (calendar.archivedAt as string | null) ?? (calendar.archived_at as string | null) ?? null
+  }
+}
+
+function normalizeReminder(input: unknown): EventReminder {
+  const reminder = (input ?? {}) as Record<string, unknown>
+
+  return {
+    id: String(reminder.id ?? ''),
+    eventId: String(reminder.eventId ?? reminder.event_id ?? ''),
+    userId: String(reminder.userId ?? reminder.user_id ?? ''),
+    type: reminder.type as EventReminder['type'],
+    minutesBefore: Number(reminder.minutesBefore ?? reminder.minutes_before ?? 0),
+    createdAt: String(reminder.createdAt ?? reminder.created_at ?? ''),
+    updatedAt: String(reminder.updatedAt ?? reminder.updated_at ?? '')
+  }
+}
+
+function normalizeException(input: unknown): EventException {
+  const exception = (input ?? {}) as Record<string, unknown>
+
+  return {
+    id: String(exception.id ?? ''),
+    eventId: String(exception.eventId ?? exception.event_id ?? ''),
+    type: String(exception.type ?? 'cancelled') as ExceptionType,
+    recurrenceId: String(exception.recurrenceId ?? exception.recurrence_id ?? ''),
+    overrideTitle: (exception.overrideTitle as string | null) ?? (exception.override_title as string | null) ?? null,
+    overrideDescription: (exception.overrideDescription as string | null) ?? (exception.override_description as string | null) ?? null,
+    overrideLocation: (exception.overrideLocation as string | null) ?? (exception.override_location as string | null) ?? null,
+    overrideStartAt: (exception.overrideStartAt as string | null) ?? (exception.override_start_at as string | null) ?? null,
+    overrideEndAt: (exception.overrideEndAt as string | null) ?? (exception.override_end_at as string | null) ?? null,
+    createdAt: String(exception.createdAt ?? exception.created_at ?? ''),
+    updatedAt: String(exception.updatedAt ?? exception.updated_at ?? '')
+  }
+}
+
+function normalizeEvent(input: unknown): CalendarEvent {
+  const event = (input ?? {}) as Record<string, unknown>
+  const calendar = event.calendar ?? event.calendars
+
+  return {
+    id: String(event.id ?? ''),
+    calendarId: String(event.calendarId ?? event.calendar_id ?? ''),
+    ownerUserId: String(event.ownerUserId ?? event.owner_user_id ?? ''),
+    title: String(event.title ?? ''),
+    description: (event.description as string | null) ?? null,
+    location: (event.location as string | null) ?? null,
+    startAt: String(event.startAt ?? event.start_at ?? ''),
+    endAt: String(event.endAt ?? event.end_at ?? ''),
+    eventTimezone: String(event.eventTimezone ?? event.event_timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone),
+    allDay: Boolean(event.allDay ?? event.all_day),
+    rrule: (event.rrule as string | null) ?? null,
+    exdate: (event.exdate as string[] | null) ?? null,
+    createdAt: String(event.createdAt ?? event.created_at ?? ''),
+    updatedAt: String(event.updatedAt ?? event.updated_at ?? ''),
+    archivedAt: (event.archivedAt as string | null) ?? (event.archived_at as string | null) ?? null,
+    calendar: calendar ? normalizeCalendar(calendar) : undefined,
+    reminders: Array.isArray(event.reminders) ? event.reminders.map(normalizeReminder) : undefined,
+    exceptions: Array.isArray(event.exceptions) ? event.exceptions.map(normalizeException) : undefined,
+    recurrenceId: (event.recurrenceId as string | null) ?? (event.recurrence_id as string | null) ?? null,
+    isRecurring: Boolean(event.isRecurring ?? event.is_recurring ?? event.rrule),
+    isCancelled: Boolean(event.isCancelled ?? event.is_cancelled)
+  }
+}
+
 export function useAppointments() {
   const toast = useToast()
 
@@ -27,7 +108,10 @@ export function useAppointments() {
     refresh: refreshCalendars
   } = useFetch<Calendar[]>('/api/appointments/calendars', {
     lazy: true,
-    key: 'appointments-calendars'
+    immediate: false,
+    key: 'appointments-calendars',
+    default: () => [],
+    transform: data => (data ?? []).map(normalizeCalendar)
   })
 
   // ─── Date range state ─────────────────────────────────────────────────────
@@ -48,18 +132,53 @@ export function useAppointments() {
     query: computed(() => ({
       from: viewFrom.value || undefined,
       to: viewTo.value || undefined,
+      calendarId: activeCalendarIds.value[0] || undefined,
       q: searchQuery.value || undefined,
       page: eventsPage.value,
       pageSize: eventsPageSize.value
     })),
     lazy: true,
+    immediate: false,
     key: 'appointments-events',
-    watch: [viewFrom, viewTo, eventsPage]
+    watch: false,
+    default: () => ({
+      data: [],
+      total: 0,
+      page: eventsPage.value,
+      pageSize: eventsPageSize.value
+    }),
+    transform: response => ({
+      data: (response?.data ?? []).map(normalizeEvent),
+      total: response?.total ?? 0,
+      page: response?.page ?? eventsPage.value,
+      pageSize: response?.pageSize ?? eventsPageSize.value
+    })
   })
 
   const debouncedRefreshEvents = useDebounceFn(() => {
+    if (!viewFrom.value && !viewTo.value) {
+      return
+    }
+
     refreshEvents()
   }, 300)
+
+  watch([viewFrom, viewTo, activeCalendarIds], () => {
+    if (!viewFrom.value && !viewTo.value) {
+      return
+    }
+
+    eventsPage.value = 1
+    refreshEvents()
+  })
+
+  watch(eventsPage, () => {
+    if (!viewFrom.value && !viewTo.value) {
+      return
+    }
+
+    refreshEvents()
+  })
 
   watch(searchQuery, () => {
     eventsPage.value = 1
@@ -75,9 +194,8 @@ export function useAppointments() {
       })
       toast.add({ title: 'Calendário criado', color: 'success' })
       await refreshCalendars()
-      return data
-    }
-    catch {
+      return normalizeCalendar(data)
+    } catch {
       toast.add({ title: 'Erro', description: 'Não foi possível criar o calendário', color: 'error' })
       return null
     }
@@ -92,8 +210,7 @@ export function useAppointments() {
       toast.add({ title: 'Calendário atualizado', color: 'success' })
       await refreshCalendars()
       return true
-    }
-    catch {
+    } catch {
       toast.add({ title: 'Erro', description: 'Não foi possível atualizar o calendário', color: 'error' })
       return false
     }
@@ -108,8 +225,7 @@ export function useAppointments() {
       await refreshCalendars()
       await refreshEvents()
       return true
-    }
-    catch {
+    } catch {
       toast.add({ title: 'Erro', description: 'Não foi possível arquivar o calendário', color: 'error' })
       return false
     }
@@ -123,10 +239,8 @@ export function useAppointments() {
         body: payload
       })
       toast.add({ title: 'Evento criado', color: 'success' })
-      await refreshEvents()
-      return data
-    }
-    catch {
+      return normalizeEvent(data)
+    } catch {
       toast.add({ title: 'Erro', description: 'Não foi possível criar o evento', color: 'error' })
       return null
     }
@@ -139,10 +253,8 @@ export function useAppointments() {
         body: payload
       })
       toast.add({ title: 'Evento atualizado', color: 'success' })
-      await refreshEvents()
       return true
-    }
-    catch {
+    } catch {
       toast.add({ title: 'Erro', description: 'Não foi possível atualizar o evento', color: 'error' })
       return false
     }
@@ -154,10 +266,8 @@ export function useAppointments() {
         method: 'POST'
       })
       toast.add({ title: 'Evento arquivado', color: 'success' })
-      await refreshEvents()
       return true
-    }
-    catch {
+    } catch {
       toast.add({ title: 'Erro', description: 'Não foi possível arquivar o evento', color: 'error' })
       return false
     }
@@ -165,9 +275,9 @@ export function useAppointments() {
 
   async function fetchEventDetail(id: string): Promise<CalendarEvent | null> {
     try {
-      return await $fetch<CalendarEvent>(`/api/appointments/events/${id}`)
-    }
-    catch {
+      const data = await $fetch<CalendarEvent>(`/api/appointments/events/${id}`)
+      return normalizeEvent(data)
+    } catch {
       toast.add({ title: 'Erro', description: 'Não foi possível carregar o evento', color: 'error' })
       return null
     }
@@ -180,10 +290,8 @@ export function useAppointments() {
         body: payload
       })
       toast.add({ title: 'Ocorrência cancelada', color: 'success' })
-      await refreshEvents()
       return true
-    }
-    catch {
+    } catch {
       toast.add({ title: 'Erro', description: 'Não foi possível cancelar a ocorrência', color: 'error' })
       return false
     }
@@ -197,8 +305,7 @@ export function useAppointments() {
       })
       toast.add({ title: 'Lembretes atualizados', color: 'success' })
       return true
-    }
-    catch {
+    } catch {
       toast.add({ title: 'Erro', description: 'Não foi possível atualizar os lembretes', color: 'error' })
       return false
     }
@@ -206,6 +313,10 @@ export function useAppointments() {
 
   // ─── View helpers ─────────────────────────────────────────────────────────
   function setViewRange(from: string, to: string) {
+    if (viewFrom.value === from && viewTo.value === to) {
+      return
+    }
+
     viewFrom.value = from
     viewTo.value = to
   }
