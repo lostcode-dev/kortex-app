@@ -6,7 +6,7 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Compromissos'
+  title: 'Agenda'
 })
 
 const {
@@ -284,7 +284,7 @@ onMounted(() => {
 <template>
   <UDashboardPanel id="appointments">
     <template #header>
-      <UDashboardNavbar>
+      <UDashboardNavbar title="Agenda">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
@@ -473,3 +473,38 @@ onMounted(() => {
     @archived="refreshEvents"
   />
 </template>
+
+<!--
+  TO DO:
+  - Quando abre a página está fazendo vários requests, deve otimizar porque não precisa iniciar fazendo requests repetidas.
+  - Na tab de Agenda, deveria ser possível editar todo o evento quando clicko para editar o evento, e também exibir todas as informações.
+  - Na tab de Agenda, está exibindo invalid date, deve corrigir para exibir a data corretamente.
+  - Na tab de Mês, apesar de trazer as respostas, não está exibindo os eventos, deve corrigir para exibir os eventos corretamente.
+  - Na tab de semana, apesar de trazer as respostas, não está exibindo os eventos, deve corrigir para exibir os eventos corretamente.
+  - A parte de Calendários, está ocupando muito espaço, deve ser colapsada por padrão, e expandida apenas quando o usuário quiser, para otimizar o espaço da tela.
+  - Qando clicko no calendário, deve ficar ativo e exibir os eventos relacionados a ele, deve corrigir para exibir os eventos relacionados ao calendário selecionado.
+  - Quando clicko no calendário, deve tirar a seleção de selecionado, e exibir para todos, basicamente posso selecionar um por vez, e sem seleção seleciona todos.
+
+  - Deve ficar armazenado o histórico dos eventos para poder exibir dados do passado, no caso de alteração.
+  - Não precisa exibir as 3 Tabs, porque todo o gerenciamento deve ser feita no calendário principal.
+  - Deve ser possível mudar a view do calendário (Dia, Semana, Mês) e ficar armazenado para a próxima vez que acessar, para otimizar a experiência do usuário.
+  - Quando clicko em um evento, deve abrir um "HoverCard", que nem no Google Calendar, com as informações do agendamento, com o btn de editar, remover, duplicar.
+  - Quando clicko em um espaço vazio do calendário, deve abrir um "HoverCard" para criar um novo evento, com a data já preenchida, para otimizar a criação de eventos.
+  - Deve seguir o padrão do Google Calendar, para otimizar a experiência do usuário, porque já estão acostumados com aquele padrão.
+  - Deve seguir o padrão do Google Calendar, para otimizar a experiência do usuário, porque já estão acostumados com aquele padrão, principamente no mode visualizar os eventos.
+  - Sidebar lateral de navegação, do menu, deve ser colapsada por padrão, e expandida apenas quando o usuário quiser, para otimizar o espaço da tela, ou quando colocar o mouse em cima.
+
+  - Hábitos que tem hora marcada, deve aparecer na agenda, e deve ser possível marcar como feito, ou não feito, para otimizar o acompanhamento dos hábitos.
+  - Deve ser possível arrastar e soltar os eventos para mudar a data, ou horário, para otimizar a edição dos eventos.
+  - Deve ser possível alterar o horário do hábito no dia que tem hora marcada, para otimizar o acompanhamento dos hábitos.
+  - Hábitos que não tem hora marcada, deve exibir que nem tarefas que existe no Google Calendar, que ficam no topo do dia, para otimizar a visualização dos hábitos.
+  - Se o Hábito estiver empilhado e o primeiro hábito tem horário, deve empilhar os outros hábitos embaixo, e exibir o horário do primeiro hábito, para otimizar a visualização dos hábitos, mesmo que os outros não tenham hora marcada.
+  - Quando estou mudando o dia, não está atualizando os eventos, para exibir os dados do dia.
+  - Em semana deve ter um layout semelhante ao Google Calendar, para otimizar a experiência do usuário, que nem o Dia, que exibe o horário na lateral esquerda.
+  - Quanto tento duplicar um evento, está dando erro 500, deve corrigir para duplicar o evento corretamente.
+  - Quando clicko em um espaço vazio do calendário, no modo dia, deve pegar o horário do dia clicado, para otimizar a criação de eventos.
+  - Quando clicko em um epsço vazio, deve ficar fácil a seleção da data, para otimizar a criação de eventos, principalmente no modo semana e mês, onde tem muitos dias.
+  - Devemos considerar o hábito como um calendário, então deve aparecer a opção onde filtra por calendário, para otimizar a visualização dos hábitos, e conseguir ver somente os hábitos no calendário.
+  - Deve ter uma cor específica para os hábitos, uma cor que não pode ser selecionada na criação de calendários, para otimizar a identificação visual dos hábitos no calendário. 
+-->
+
