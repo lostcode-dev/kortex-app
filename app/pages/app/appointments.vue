@@ -223,4 +223,6 @@ onMounted(() => {
   - A parte de Calendários, está ocupando muito espaço, deve ser colapsada por padrão, e expandida apenas quando o usuário quiser, para otimizar o espaço da tela.
   - Qando clicko no calendário, deve ficar ativo e exibir os eventos relacionados a ele, deve corrigir para exibir os eventos relacionados ao calendário selecionado.
   - Quando clicko no calendário, deve tirar a seleção de selecionado, e exibir para todos, basicamente posso selecionar um por vez, e sem seleção seleciona todos.
+
+  - Deve ficar arzenado o histórico dos eventos para poder exibir dados do passado.
 -->
