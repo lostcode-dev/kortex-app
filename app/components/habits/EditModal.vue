@@ -31,6 +31,7 @@ const {
   habitTypeOptions,
   dayOptions,
   identities,
+  tags,
 } = useHabits();
 
 const schema = z
@@ -47,6 +48,7 @@ const schema = z
     identityId: z.string().uuid().optional(),
     customDays: z.array(z.number().int().min(0).max(6)).optional(),
     scheduledTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato HH:mm').optional(),
+    scheduledEndTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato HH:mm').optional(),
   })
   .refine(
     (data) =>
@@ -70,6 +72,7 @@ const state = reactive<Partial<Schema>>({
   identityId: undefined,
   customDays: [],
   scheduledTime: undefined,
+  scheduledEndTime: undefined,
 });
 
 watch(
@@ -88,6 +91,8 @@ watch(
       state.identityId = habit.identityId ?? undefined;
       state.customDays = habit.customDays ?? [];
       state.scheduledTime = habit.scheduledTime ?? undefined;
+      state.scheduledEndTime = habit.scheduledEndTime ?? undefined;
+      selectedTagIds.value = (habit.tags ?? []).map(t => t.id);
     }
   },
   { immediate: true },
@@ -95,6 +100,7 @@ watch(
 
 const loading = ref(false);
 const activeFormTab = ref("main");
+const selectedTagIds = ref<string[]>([]);
 
 watch(
   () => props.open,
@@ -129,6 +135,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       easyStrategy: normalizeRichText(event.data.easyStrategy) ?? null,
       satisfyingStrategy: normalizeRichText(event.data.satisfyingStrategy) ?? null,
       scheduledTime: event.data.scheduledTime || null,
+      scheduledEndTime: event.data.scheduledEndTime || null,
+      tagIds: selectedTagIds.value,
     });
     if (result) {
       emit("updated");
@@ -262,7 +270,7 @@ function getHabitTypeIcon(habitType: HabitType) {
               </div>
             </UFormField>
 
-            <div class="grid gap-4 md:grid-cols-2">
+            <div class="space-y-4">
               <UFormField label="Dificuldade" name="difficulty">
                 <div class="flex flex-wrap gap-2">
                   <UButton
@@ -322,7 +330,25 @@ function getHabitTypeIcon(habitType: HabitType) {
             <UFormField label="Horário programado" name="scheduledTime">
               <UiTimePicker
                 v-model="state.scheduledTime"
-                placeholder="Selecione o horário"
+                placeholder="Horário de início"
+              />
+            </UFormField>
+
+            <UFormField label="Horário de término" name="scheduledEndTime">
+              <UiTimePicker
+                v-model="state.scheduledEndTime"
+                placeholder="Horário de término"
+              />
+            </UFormField>
+
+            <UFormField label="Tags" name="tags">
+              <USelectMenu
+                v-model="selectedTagIds"
+                :items="(tags ?? []).map(t => ({ label: t.name, value: t.id }))"
+                value-key="value"
+                placeholder="Selecione tags..."
+                multiple
+                class="w-full"
               />
             </UFormField>
           </div>

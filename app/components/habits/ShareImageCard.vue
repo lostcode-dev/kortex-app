@@ -39,20 +39,7 @@ const habitTypeAccent = computed(() => {
   return tone === 'error' ? '#fb7185' : '#2dd4bf'
 })
 
-const description = computed(() => {
-  const raw = habit.value.description
-    ?.replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-
-  if (!raw) {
-    return 'Um passo pequeno, repetido com consistência, muda a direção dos próximos meses.'
-  }
-
-  if (raw.length <= 150) return raw
-  return `${raw.slice(0, 147)}...`
-})
+const motivationalQuote = 'Um passo pequeno, repetido com consistência, muda a direção dos próximos meses.'
 
 const createdAtLabel = computed(() => {
   const date = new Date(habit.value.createdAt)
@@ -86,11 +73,10 @@ const displayInitials = computed(() => props.userInitials || 'SB')
     <div class="share-card__content">
       <header class="share-card__header">
         <div class="share-card__profile">
-          <div class="share-card__avatar">{{ displayInitials }}</div>
+          <div class="share-card__avatar">SB</div>
           <div class="share-card__profile-copy">
             <p class="share-card__eyebrow">Second Brain Wrapped</p>
-            <strong class="share-card__profile-name">{{ userName || 'Meu ciclo atual' }}</strong>
-            <p class="share-card__handle">{{ displayHandle }}</p>
+            <strong class="share-card__profile-name">Meu ciclo atual</strong>
           </div>
         </div>
 
@@ -104,7 +90,7 @@ const displayInitials = computed(() => props.userInitials || 'SB')
         <div class="share-card__hero-copy">
           <p class="share-card__hero-label">o hábito que está movendo sua fase</p>
           <h1 class="share-card__habit-name">{{ habit.name }}</h1>
-          <p class="share-card__description">{{ description }}</p>
+          <p class="share-card__description">{{ motivationalQuote }}</p>
         </div>
 
         <div class="share-card__meter">
@@ -156,7 +142,7 @@ const displayInitials = computed(() => props.userInitials || 'SB')
       <footer class="share-card__footer">
         <div class="share-card__footer-line">
           <span class="share-card__footer-copy">Começou em {{ createdAtLabel || 'um novo ciclo' }}</span>
-          <span class="share-card__footer-copy">Second Brain · {{ displayHandle }}</span>
+          <span class="share-card__footer-copy">Second Brain</span>
         </div>
       </footer>
     </div>
@@ -217,7 +203,7 @@ const displayInitials = computed(() => props.userInitials || 'SB')
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 62px;
+  padding: 48px;
   box-sizing: border-box;
 }
 
@@ -292,18 +278,18 @@ const displayInitials = computed(() => props.userInitials || 'SB')
 
 .share-card__hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 270px;
-  gap: 36px;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 28px;
   align-items: end;
-  margin-top: 52px;
+  margin-top: 36px;
 }
 
 .share-card__habit-name {
-  margin: 12px 0 20px;
-  font-size: 118px;
-  line-height: 0.88;
+  margin: 12px 0 14px;
+  font-size: 96px;
+  line-height: 0.9;
   letter-spacing: -0.09em;
-  max-width: 6ch;
+  max-width: 8ch;
   text-wrap: balance;
 }
 
@@ -326,8 +312,8 @@ const displayInitials = computed(() => props.userInitials || 'SB')
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 254px;
-  height: 254px;
+  width: 220px;
+  height: 220px;
   border-radius: 999px;
   border: 14px solid rgba(255, 255, 255, 0.12);
   box-shadow: inset 0 0 0 20px rgba(6, 8, 12, 0.9);
@@ -351,18 +337,18 @@ const displayInitials = computed(() => props.userInitials || 'SB')
 .share-card__metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 62px;
+  gap: 14px;
+  margin-top: 36px;
 }
 
 .share-card__metric {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-height: 202px;
-  padding: 32px;
+  gap: 10px;
+  min-height: 170px;
+  padding: 26px;
   border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 34px;
+  border-radius: 28px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
 }
 
@@ -380,8 +366,8 @@ const displayInitials = computed(() => props.userInitials || 'SB')
 .share-card__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 28px;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .share-card__tag {
@@ -400,10 +386,10 @@ const displayInitials = computed(() => props.userInitials || 'SB')
   display: flex;
   align-items: end;
   justify-content: space-between;
-  gap: 24px;
-  margin-top: 28px;
-  padding: 28px 30px;
-  border-radius: 34px;
+  gap: 20px;
+  margin-top: 20px;
+  padding: 22px 26px;
+  border-radius: 28px;
   background: linear-gradient(135deg, rgba(231, 247, 106, 0.11), rgba(255, 255, 255, 0.03));
   border: 1px solid rgba(231, 247, 106, 0.18);
 }

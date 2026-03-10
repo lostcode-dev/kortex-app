@@ -65,7 +65,7 @@ async function onArchive(identityId: string, identityName: string) {
     @update:open="emit('update:open', $event)"
   >
     <template #body>
-      <div class="space-y-6">
+      <div class="space-y-6 max-h-[70vh] overflow-y-auto">
         <UForm
           :schema="schema"
           :state="state"

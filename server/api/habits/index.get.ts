@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { getSupabaseAdminClient } from '../../utils/supabase'
 import { requireAuthUser } from '../../utils/require-auth'
-import { mapHabitList } from '../../utils/habits'
+import { mapHabitList, fetchHabitTagMap } from '../../utils/habits'
 
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -80,7 +80,10 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'Failed to fetch habit stacks', data: stacksError.message })
   }
 
-  const habits = mapHabitList((data ?? []) as Record<string, unknown>[])
+  const habitIds = (data ?? []).map((h: Record<string, unknown>) => String(h.id))
+  const tagMap = await fetchHabitTagMap(supabase, habitIds)
+
+  const habits = mapHabitList((data ?? []) as Record<string, unknown>[], tagMap)
   const visibleHabitIds = new Set(habits.map((habit) => String(habit.id)))
   const habitsById = new Map(habits.map((habit) => [String(habit.id), habit] as const))
   const childrenByParent = new Map<string, string[]>()

@@ -1,5 +1,6 @@
 import { getSupabaseAdminClient } from '../../utils/supabase'
 import { requireAuthUser } from '../../utils/require-auth'
+import { mapIdentity } from '../../utils/habits'
 
 export default eventHandler(async (event) => {
   const user = await requireAuthUser(event)
@@ -16,5 +17,5 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'Falha ao buscar identidades', data: error.message })
   }
 
-  return data ?? []
+  return (data ?? []).map(row => mapIdentity(row)).filter(Boolean)
 })

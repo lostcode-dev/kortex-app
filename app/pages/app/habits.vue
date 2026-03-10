@@ -40,6 +40,8 @@ const {
   removeStacksByTrigger,
   removeStack,
   syncHabitTree,
+  tagsStatus,
+  refreshTags,
 } = useHabits();
 
 // ─── Active tab ───────────────────────────────────────────────────────────────
@@ -49,6 +51,7 @@ const tabs = [
   { label: "Hoje", value: "today", icon: "i-lucide-sun" },
   { label: "Todos", value: "all", icon: "i-lucide-list" },
   { label: "Revisão", value: "review", icon: "i-lucide-notebook-pen" },
+  { label: "Insights", value: "insights", icon: "i-lucide-bar-chart-3" },
 ];
 
 function ensureLoaded(
@@ -64,8 +67,6 @@ function ensureLoaded(
 watch(
   activeTab,
   (tab) => {
-    ensureLoaded(insightsStatus, refreshInsights);
-
     if (tab === "today") {
       ensureLoaded(todayStatus, refreshToday);
       ensureLoaded(stacksStatus, refreshStacks);
@@ -80,6 +81,10 @@ watch(
       reviewWeekKey.value = reviewWeekKey.value || currentWeekKey.value;
       loadReflection(reviewWeekKey.value);
       loadReflectionsList(true);
+    }
+
+    if (tab === "insights") {
+      ensureLoaded(insightsStatus, refreshInsights);
     }
   },
   { immediate: true },
@@ -101,6 +106,7 @@ const shareImageHabit = ref<Habit | null>(null);
 watch(createModalOpen, (open) => {
   if (open) {
     ensureLoaded(identitiesStatus, refreshIdentities);
+    ensureLoaded(tagsStatus, refreshTags);
   }
 });
 
@@ -171,6 +177,8 @@ async function onSelectHabit(habitId: string) {
 function onEditHabit(habit: Habit) {
   selectedHabit.value = habit;
   editModalOpen.value = true;
+  ensureLoaded(identitiesStatus, refreshIdentities);
+  ensureLoaded(tagsStatus, refreshTags);
 }
 
 function onArchiveHabit(habit: Habit) {
@@ -384,11 +392,6 @@ const difficultyFilterOptions = computed(() => [
 
     <template #body>
       <div class="space-y-6">
-        <HabitsInsightsPanel
-          :insights="insights ?? null"
-          :loading="insightsStatus === 'pending'"
-        />
-
         <!-- Tabs -->
         <UTabs
           :items="tabs"
@@ -498,6 +501,14 @@ const difficultyFilterOptions = computed(() => [
             @navigate-week="navigateReviewWeek"
           />
         </div>
+
+        <!-- INSIGHTS TAB -->
+        <div v-if="activeTab === 'insights'">
+          <HabitsInsightsPanel
+            :insights="insights ?? null"
+            :loading="insightsStatus === 'pending'"
+          />
+        </div>
       </div>
     </template>
   </UDashboardPanel>
@@ -579,13 +590,17 @@ const difficultyFilterOptions = computed(() => [
 <!--
   TO DO:
  - Na imagem de compartilhar para as redes sociais, ainda contém muita informação pessoal e os dados estão incorretos.
- - Ao clickar em compartilhar na listagem de hábitos, não está abrindo o modal.
- - Pensar sobre a integração com IA para análise de hábitos e sugestões de melhorias.
- - Está com algum cálculo errado no Streak
- - Tem que ter o histórico do empilhamento para conseguir exibir dados do passado
+  - Não precisa da descrição do hábito.
+  - A imagem está cortando no bottom. 
+ - Está com algum cálculo errado no Streak.
+  - Na verdade, é porque quando não marca o hábito, ele não contabiliza.
+ - Tem que ter o histórico do empilhamento para conseguir exibir dados do passado.
+  - Atualmente temos o histórico para os hábitos.
  - O loading quando mudo o empilhamento deve ser feito por de baixo dos panos, sem exibir o skeleton
+  - Assim evita de ficar piscando a tela toda vez que mudar o empilhamento.
  - Precisa de alguma rotina para no fim do dia os hábitos que não foram marcados como feitos, sejam marcados como não feitos (skipped)
  - Verificar o fluxo de "Identificadores", tem muitos bugs.
+  - Tanto de layout, quanto de dados. 
  - As estáticas de hábitos no topo não está legal, porque está ocupando o espaço na tela, o principal deveri ser gerenciar os hábitos. Pode ficar em uma nova tab de "Insights" ou algo do tipo.
  - Adicionar na nova tab de "Insights", gráficos e análises mais detalhadas sobre os hábitos, algo também como o quadro do github de commits, quanto mais hábitos concluídos em um dia mais verde vai ficando o dia, como evolução ao longo do tempo, correlações entre hábitos, etc.
  - Melhorar o layout da linha na Tab de "Hoje".
@@ -596,4 +611,7 @@ const difficultyFilterOptions = computed(() => [
  - Corrigir o processo de autenticação, porque estou tendo que fazer login o tempo todo e minha sessão não está ficando guardada.
  - Possibilidade de adicionar "tags" nos hábitos para facilitar a organização e filtragem.
  - Remover o template que tem no modal de criação de hábito.
+
+ Backlog:
+  - Pensar sobre a integração com IA para análise de hábitos e sugestões de melhorias.
 -->

@@ -3,6 +3,7 @@ import type {
   CalendarDay,
   CreateHabitPayload,
   CreateHabitStackPayload,
+  CreateHabitTagPayload,
   CreateIdentityPayload,
   CreateReflectionPayload,
   HabitChangeHistory,
@@ -10,6 +11,7 @@ import type {
   HabitListResponse,
   HabitReflection,
   HabitStack,
+  HabitTag,
   HabitTreeSyncNode,
   HabitUserSettings,
   Identity,
@@ -86,6 +88,17 @@ export function useHabits() {
     lazy: true,
     immediate: false,
     key: 'habits-identities'
+  })
+
+  // ─── Tags ───────────────────────────────────────────────────────────────────
+  const {
+    data: tags,
+    status: tagsStatus,
+    refresh: refreshTags
+  } = useFetch<HabitTag[]>('/api/habits/tags', {
+    lazy: true,
+    immediate: false,
+    key: 'habits-tags'
   })
 
   // ─── Insights ───────────────────────────────────────────────────────────────
@@ -205,6 +218,33 @@ export function useHabits() {
     }
   }
 
+  async function createTag(payload: CreateHabitTagPayload): Promise<HabitTag | null> {
+    try {
+      const tag = await $fetch<HabitTag>('/api/habits/tags', {
+        method: 'POST',
+        body: payload
+      })
+      toast.add({ title: 'Tag criada', description: `"${tag.name}" criada com sucesso.`, color: 'success' })
+      await refreshTags()
+      return tag
+    } catch {
+      toast.add({ title: 'Erro', description: 'Não foi possível criar a tag.', color: 'error' })
+      return null
+    }
+  }
+
+  async function deleteTag(id: string, name: string): Promise<boolean> {
+    try {
+      await $fetch(`/api/habits/tags/${id}`, { method: 'DELETE' })
+      toast.add({ title: 'Tag excluída', description: `"${name}" foi excluída.`, color: 'success' })
+      await Promise.all([refreshTags(), refreshList()])
+      return true
+    } catch {
+      toast.add({ title: 'Erro', description: 'Não foi possível excluir a tag.', color: 'error' })
+      return false
+    }
+  }
+
   async function saveReflection(payload: CreateReflectionPayload): Promise<HabitReflection | null> {
     try {
       const reflection = await $fetch<HabitReflection>('/api/habits/reflections', {
@@ -262,6 +302,45 @@ export function useHabits() {
     key: 'habits-stacks'
   })
 
+  /** Silently refresh stacks + today + list without resetting status to pending (avoids skeleton flash) */
+  async function silentRefreshAfterStackChange(): Promise<void> {
+    const promises: Promise<void>[] = []
+
+    promises.push(
+      $fetch<HabitStack[]>('/api/habits/stacks').then((data) => {
+        stacks.value = data
+      }).catch(() => {})
+    )
+
+    if (todayStatus.value === 'success') {
+      promises.push(
+        $fetch<TodayHabitsResponse>('/api/habits/today', { query: { date: todayDate.value } }).then((data) => {
+          todayData.value = data
+        }).catch(() => {})
+      )
+    }
+
+    if (listStatus.value === 'success') {
+      promises.push(
+        $fetch<HabitListResponse>('/api/habits', {
+          query: {
+            page: listPage.value,
+            pageSize: listPageSize.value,
+            search: listSearch.value || undefined,
+            frequency: listFrequency.value || undefined,
+            difficulty: listDifficulty.value || undefined,
+            identityId: listIdentityId.value || undefined,
+            archived: listArchived.value
+          }
+        }).then((data) => {
+          listData.value = data
+        }).catch(() => {})
+      )
+    }
+
+    await Promise.all(promises)
+  }
+
   async function createStack(payload: CreateHabitStackPayload): Promise<HabitStack | null> {
     try {
       const stack = await $fetch<HabitStack>('/api/habits/stacks', {
@@ -269,7 +348,7 @@ export function useHabits() {
         body: payload
       })
       toast.add({ title: 'Empilhamento criado', description: 'Gatilho de hábito adicionado com sucesso.', color: 'success' })
-      await Promise.all([refreshStacks(), refreshToday(), refreshList()])
+      await silentRefreshAfterStackChange()
       return stack
     } catch {
       toast.add({ title: 'Erro', description: 'Não foi possível criar o empilhamento.', color: 'error' })
@@ -281,7 +360,7 @@ export function useHabits() {
     try {
       await $fetch(`/api/habits/stacks/${id}`, { method: 'DELETE' })
       toast.add({ title: 'Empilhamento removido', description: 'Gatilho removido com sucesso.', color: 'success' })
-      await Promise.all([refreshStacks(), refreshToday(), refreshList()])
+      await silentRefreshAfterStackChange()
       return true
     } catch {
       toast.add({ title: 'Erro', description: 'Não foi possível remover o empilhamento.', color: 'error' })
@@ -303,7 +382,7 @@ export function useHabits() {
         color: 'success'
       })
 
-      await Promise.all([refreshStacks(), refreshToday(), refreshList()])
+      await silentRefreshAfterStackChange()
       return true
     } catch {
       toast.add({ title: 'Erro', description: 'Não foi possível remover os empilhamentos.', color: 'error' })
@@ -324,7 +403,7 @@ export function useHabits() {
         color: 'success'
       })
 
-      await Promise.all([refreshStacks(), refreshToday(), refreshList(), refreshInsights()])
+      await silentRefreshAfterStackChange()
       return true
     } catch {
       toast.add({
@@ -430,6 +509,12 @@ export function useHabits() {
     identities,
     identitiesStatus,
     refreshIdentities,
+    // Tags
+    tags,
+    tagsStatus,
+    refreshTags,
+    createTag,
+    deleteTag,
     // Insights
     insights,
     insightsStatus,

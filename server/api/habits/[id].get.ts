@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { getSupabaseAdminClient } from '../../utils/supabase'
 import { requireAuthUser } from '../../utils/require-auth'
-import { mapHabit } from '../../utils/habits'
+import { mapHabit, fetchHabitTagMap } from '../../utils/habits'
 
 const paramsSchema = z.object({
   id: z.string().uuid()
@@ -24,5 +24,7 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Hábito não encontrado' })
   }
 
-  return mapHabit(data as Record<string, unknown>)
+  const tagMap = await fetchHabitTagMap(supabase, [id])
+
+  return mapHabit(data as Record<string, unknown>, tagMap.get(id))
 })

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { getSupabaseAdminClient } from '../../utils/supabase'
 import { requireAuthUser } from '../../utils/require-auth'
-import { mapHabit, mapHabitFromVersion } from '../../utils/habits'
+import { mapHabit, mapHabitFromVersion, fetchHabitTagMap } from '../../utils/habits'
 import { resolveHabitsForDate } from '../../utils/habit-versions'
 
 const querySchema = z.object({
@@ -45,17 +45,27 @@ export default eventHandler(async (event) => {
       throw createError({ statusCode: 500, statusMessage: 'Falha ao buscar hábitos', data: habitsError.message })
     }
 
-    todayHabitsMapped = (habits ?? [])
+    const dueHabits = (habits ?? [])
       .filter((h: Record<string, unknown>) => isDueOnDay(h.frequency, h.custom_days, dayOfWeek))
-      .map((h: Record<string, unknown>) => mapHabit(h))
+
+    const dueIds = dueHabits.map((h: Record<string, unknown>) => String(h.id))
+    const tagMap = await fetchHabitTagMap(supabase, dueIds)
+
+    todayHabitsMapped = dueHabits
+      .map((h: Record<string, unknown>) => mapHabit(h, tagMap.get(String(h.id))))
   } else {
     // Past/future date — use habit_versions for historical accuracy
     const resolved = await resolveHabitsForDate(supabase, user.id, date)
 
-    todayHabitsMapped = resolved
+    const dueResolved = resolved
       .filter(({ version }) => isDueOnDay(version.frequency, version.custom_days, dayOfWeek))
+
+    const dueIds = dueResolved.map(({ version }) => String(version.habit_id))
+    const tagMap = await fetchHabitTagMap(supabase, dueIds)
+
+    todayHabitsMapped = dueResolved
       .map(({ version, identity, streak, archivedAt }) =>
-        mapHabitFromVersion(version, identity, streak, archivedAt)
+        mapHabitFromVersion(version, identity, streak, archivedAt, tagMap.get(String(version.habit_id)))
       )
   }
 

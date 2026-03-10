@@ -61,6 +61,20 @@ export const HABIT_TYPE_META: Record<HabitType, { label: string; icon: string; c
 
 // ─── Entities ─────────────────────────────────────────────────────────────────
 
+export interface HabitTag {
+  id: string
+  userId: string
+  name: string
+  color: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateHabitTagPayload {
+  name: string
+  color?: string
+}
+
 export interface Identity {
   id: string
   userId: string
@@ -88,12 +102,14 @@ export interface Habit {
   sortOrder: number
   timezone: string | null
   scheduledTime: string | null
+  scheduledEndTime: string | null
   archivedAt: string | null
   createdAt: string
   updatedAt: string
   // Populated via joins
   identity?: Identity | null
   streak?: HabitStreak | null
+  tags?: HabitTag[]
 }
 
 export interface HabitChangeHistory {
@@ -182,6 +198,7 @@ export interface HabitVersion {
   sortOrder: number
   timezone: string | null
   scheduledTime: string | null
+  scheduledEndTime: string | null
   validFrom: string
   validTo: string | null
   createdAt: string
@@ -222,6 +239,8 @@ export interface CreateHabitPayload {
   identityId?: string
   customDays?: number[]
   scheduledTime?: string
+  scheduledEndTime?: string
+  tagIds?: string[]
 }
 
 export interface UpdateHabitPayload {
@@ -238,6 +257,8 @@ export interface UpdateHabitPayload {
   customDays?: number[]
   sortOrder?: number
   scheduledTime?: string | null
+  scheduledEndTime?: string | null
+  tagIds?: string[]
 }
 
 export interface LogHabitPayload {
@@ -361,4 +382,22 @@ export interface CalendarDay {
   date: string
   completed: boolean
   note: string | null
+}
+
+export interface HeatmapDay {
+  date: string
+  count: number
+  total: number
+  level: number
+}
+
+export interface WeeklyRate {
+  week: string
+  rate: number
+}
+
+export interface HeatmapData {
+  days: HeatmapDay[]
+  weeklyRates: WeeklyRate[]
+  totalHabits: number
 }

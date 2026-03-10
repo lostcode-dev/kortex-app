@@ -42,7 +42,7 @@ const content = computed<string>({
 
 <template>
   <ClientOnly>
-    <div class="rich-text-shell overflow-hidden rounded-lg border border-default bg-default">
+    <div class="rich-text-shell rounded-lg border border-default bg-default">
       <QuillEditor
         v-model:content="content"
         content-type="html"
@@ -62,6 +62,14 @@ const content = computed<string>({
 </template>
 
 <style scoped>
+.rich-text-shell {
+  position: relative;
+}
+
+.rich-text-shell :deep(.ql-bubble .ql-tooltip) {
+  z-index: 100;
+}
+
 .rich-text-shell :deep(.ql-toolbar.ql-snow) {
   border: 0;
   border-bottom: 1px solid var(--ui-border);

@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import type { HabitInsights as InsightsType } from '~/types/habits'
+import type { HabitInsights as InsightsType, HeatmapData } from '~/types/habits'
 
 const props = defineProps<{
   insights: InsightsType | null
   loading: boolean
 }>()
+
+const { data: heatmapData, status: heatmapStatus } = useFetch<HeatmapData>('/api/habits/insights/heatmap', {
+  lazy: true,
+  key: 'habits-heatmap',
+  query: { months: 6 }
+})
 
 const stats = computed(() => {
   if (!props.insights) return []
@@ -63,12 +69,68 @@ const stats = computed(() => {
       </template>
     </div>
 
+    <!-- Heatmap -->
+    <UCard>
+      <template #header>
+        <div class="flex items-center gap-2">
+          <UIcon name="i-lucide-calendar" class="size-5 text-primary" />
+          <p class="font-medium text-highlighted">
+            Mapa de atividades
+          </p>
+        </div>
+      </template>
+
+      <template v-if="heatmapStatus === 'pending'">
+        <div class="space-y-2">
+          <USkeleton class="h-24 w-full" />
+          <USkeleton class="h-4 w-32 ml-auto" />
+        </div>
+      </template>
+
+      <template v-else-if="heatmapData?.days?.length">
+        <HabitsHeatmapChart :days="heatmapData.days" />
+      </template>
+
+      <div v-else class="py-6 text-center text-sm text-muted">
+        Sem dados de atividade ainda.
+      </div>
+    </UCard>
+
+    <!-- Weekly completion rate chart -->
+    <UCard>
+      <template #header>
+        <div class="flex items-center gap-2">
+          <UIcon name="i-lucide-trending-up" class="size-5 text-primary" />
+          <p class="font-medium text-highlighted">
+            Taxa de conclusão semanal
+          </p>
+        </div>
+      </template>
+
+      <template v-if="heatmapStatus === 'pending'">
+        <div class="space-y-2">
+          <USkeleton class="h-32 w-full" />
+        </div>
+      </template>
+
+      <template v-else-if="heatmapData?.weeklyRates?.length">
+        <HabitsWeeklyRateChart :rates="heatmapData.weeklyRates" />
+      </template>
+
+      <div v-else class="py-6 text-center text-sm text-muted">
+        Sem dados suficientes para o gráfico.
+      </div>
+    </UCard>
+
     <!-- Identity Progress -->
     <UCard v-if="!loading && insights?.identityProgress?.length">
       <template #header>
-        <p class="font-medium text-highlighted">
-          Progresso por identidade
-        </p>
+        <div class="flex items-center gap-2">
+          <UIcon name="i-lucide-user-check" class="size-5 text-primary" />
+          <p class="font-medium text-highlighted">
+            Progresso por identidade
+          </p>
+        </div>
       </template>
 
       <div class="space-y-4">

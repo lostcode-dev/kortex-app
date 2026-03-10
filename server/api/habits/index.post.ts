@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { getSupabaseAdminClient } from '../../utils/supabase'
 import { requireAuthUser } from '../../utils/require-auth'
 import { sanitizeRichTextHtml } from '../../utils/rich-text'
-import { mapHabit } from '../../utils/habits'
+import { mapHabit, fetchHabitTagMap } from '../../utils/habits'
 import { createInitialHabitVersion } from '../../utils/habit-versions'
 
 const bodySchema = z.object({
@@ -17,7 +17,9 @@ const bodySchema = z.object({
   habitType: z.enum(['positive', 'negative']).default('positive'),
   identityId: z.string().uuid().optional(),
   customDays: z.array(z.number().int().min(0).max(6)).optional(),
-  scheduledTime: z.string().regex(/^\d{2}:\d{2}$/, 'Horário deve estar no formato HH:mm').optional()
+  scheduledTime: z.string().regex(/^\d{2}:\d{2}$/, 'Horário deve estar no formato HH:mm').optional(),
+  scheduledEndTime: z.string().regex(/^\d{2}:\d{2}$/, 'Horário deve estar no formato HH:mm').optional(),
+  tagIds: z.array(z.string().uuid()).optional()
 }).refine(
   data => data.frequency !== 'custom' || (data.customDays && data.customDays.length > 0),
   { message: 'Selecione ao menos um dia para frequência personalizada', path: ['customDays'] }
@@ -46,7 +48,8 @@ export default eventHandler(async (event) => {
       habit_type: parsed.habitType,
       identity_id: parsed.identityId ?? null,
       custom_days: parsed.customDays ?? null,
-      scheduled_time: parsed.scheduledTime ?? null
+      scheduled_time: parsed.scheduledTime ?? null,
+      scheduled_end_time: parsed.scheduledEndTime ?? null
     })
     .select('*')
     .single()
@@ -66,5 +69,14 @@ export default eventHandler(async (event) => {
     last_completed_date: null
   })
 
-  return mapHabit(habit as Record<string, unknown>)
+  // Link tags
+  if (parsed.tagIds?.length) {
+    await supabase.from('habit_tag_links').insert(
+      parsed.tagIds.map(tagId => ({ habit_id: habit.id, tag_id: tagId }))
+    )
+  }
+
+  const tagMap = await fetchHabitTagMap(supabase, [habit.id as string])
+
+  return mapHabit(habit as Record<string, unknown>, tagMap.get(habit.id as string))
 })

@@ -116,25 +116,29 @@ async function updateStreakCache(
 
   const dates = logs.map((l: Record<string, unknown>) => l.log_date as string).sort().reverse()
 
-  for (let i = 0; i < dates.length; i++) {
-    const logDate = new Date(dates[i])
-    logDate.setHours(0, 0, 0, 0)
+  // Determine streak start: today or yesterday (if today has no log yet)
+  const firstLogDate = new Date(dates[0] + 'T00:00:00')
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
 
-    const expectedDate = new Date(today)
+  let streakAnchor: Date
+  if (firstLogDate.getTime() === today.getTime()) {
+    streakAnchor = today
+  } else if (firstLogDate.getTime() === yesterday.getTime()) {
+    streakAnchor = yesterday
+  } else {
+    // Last completion was before yesterday — streak is 0
+    streakAnchor = today
+  }
+
+  for (let i = 0; i < dates.length; i++) {
+    const logDate = new Date(dates[i] + 'T00:00:00')
+
+    const expectedDate = new Date(streakAnchor)
     expectedDate.setDate(expectedDate.getDate() - i)
-    expectedDate.setHours(0, 0, 0, 0)
 
     if (logDate.getTime() === expectedDate.getTime()) {
       currentStreak++
-    } else if (i === 0) {
-      // Allow yesterday as current streak start
-      const yesterday = new Date(today)
-      yesterday.setDate(yesterday.getDate() - 1)
-      if (logDate.getTime() === yesterday.getTime()) {
-        currentStreak++
-      } else {
-        break
-      }
     } else {
       break
     }
@@ -146,8 +150,8 @@ async function updateStreakCache(
   const sortedDates = [...dates].sort()
 
   for (let i = 1; i < sortedDates.length; i++) {
-    const prev = new Date(sortedDates[i - 1])
-    const curr = new Date(sortedDates[i])
+    const prev = new Date(sortedDates[i - 1] + 'T00:00:00')
+    const curr = new Date(sortedDates[i] + 'T00:00:00')
     const diff = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24)
 
     if (diff === 1) {
