@@ -52,6 +52,8 @@ pnpm dev               # tsx watch mode (cron jobs ativos)
 | `TZ`                        | Timezone IANA para os cron jobs                 | `Europe/Lisbon` |
 | `CRON_CLOSE_DAY_SCHEDULE`   | Expressão cron para o job de fechamento do dia  | `55 23 * * *`   |
 | `JOB_TRIGGER_TOKEN`         | Token Bearer para disparar jobs manualmente     |                 |
+| `CLOSE_DAY_FETCH_BATCH_SIZE`| Tamanho de lote para leitura no close-day       | `500`           |
+| `CLOSE_DAY_UPSERT_BATCH_SIZE`| Tamanho de lote para inserts/upserts no close-day | `200`        |
 
 Para produção, crie um arquivo local `.env.production` a partir de `.env.production.example`.
 
@@ -71,6 +73,8 @@ Roda diariamente às 23:55 (configurável via `CRON_CLOSE_DAY_SCHEDULE`) no time
 - Lock guard: se o job anterior ainda está rodando, a nova execução é ignorada
 
 **Backfill automático:** Cada execução processa os últimos 7 dias por padrão, garantindo que dias perdidos (reinício do servidor, deploy, etc.) sejam cobertos automaticamente.
+
+**Escala:** O processamento usa paginação e chunks configuráveis para reduzir pico de memória e evitar queries/inserts gigantes quando houver muitos hábitos/logs.
 
 ## Endpoints HTTP
 

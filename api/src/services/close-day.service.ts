@@ -1,4 +1,5 @@
 import { HabitRepository } from '../repositories/index.js'
+import { env } from '../config/index.js'
 import { HabitFrequency, HabitLogStatus } from '../types/index.js'
 import type { SkipLogInsert } from '../types/index.js'
 import { getUtcDayOfWeek, listDatesBetween, getTodayLocal, getPreviousDateUtc, logger } from '../utils/index.js'
@@ -15,6 +16,8 @@ export interface CloseDayResult {
  * Covers weekends + possible downtime.
  */
 const BACKFILL_DAYS = 7
+const DEFAULT_FETCH_BATCH_SIZE = env.CLOSE_DAY_FETCH_BATCH_SIZE
+const DEFAULT_UPSERT_BATCH_SIZE = env.CLOSE_DAY_UPSERT_BATCH_SIZE
 
 export class CloseDayService {
   private repo: HabitRepository
@@ -70,35 +73,55 @@ export class CloseDayService {
   private async processDate(targetDate: string): Promise<number> {
     const dayOfWeek = getUtcDayOfWeek(targetDate)
 
-    const versions = await this.repo.getVersionsForDate(targetDate)
-    if (versions.length === 0) return 0
+    let skipped = 0
+    let start = 0
 
+    while (true) {
+      const versions = await this.repo.getVersionsForDate(targetDate, start, DEFAULT_FETCH_BATCH_SIZE)
+      if (versions.length === 0) break
+
+      skipped += await this.processVersionBatch(targetDate, dayOfWeek, versions)
+
+      if (versions.length < DEFAULT_FETCH_BATCH_SIZE) break
+      start += DEFAULT_FETCH_BATCH_SIZE
+    }
+
+    return skipped
+  }
+
+  private async processVersionBatch(targetDate: string, dayOfWeek: number, versions: Array<{
+    id: string
+    habit_id: string
+    user_id: string
+    frequency: HabitFrequency
+    custom_days: number[] | null
+  }>): Promise<number> {
     const habitIds = [...new Set(versions.map((v) => v.habit_id))]
     const habits = await this.repo.getHabitsByIds(habitIds)
-
     const archivedMap = new Map(habits.map((h) => [h.id, h.archived_at]))
 
-    const dueVersions = versions.filter((v) => {
-      const archivedAt = archivedMap.get(v.habit_id)
+    const dueVersions = versions.filter((version) => {
+      const archivedAt = archivedMap.get(version.habit_id)
       if (archivedAt) {
         const archivedDate = archivedAt.split('T')[0]
         if (archivedDate && archivedDate <= targetDate) return false
       }
-      return isDueOnDay(v.frequency, v.custom_days, dayOfWeek)
+
+      return isDueOnDay(version.frequency, version.custom_days, dayOfWeek)
     })
 
     if (dueVersions.length === 0) return 0
 
-    const dueHabitIds = dueVersions.map((v) => v.habit_id)
-    const existingLogs = await this.repo.getLogsForDate(dueHabitIds, targetDate)
-    const loggedIds = new Set(existingLogs.map((l) => l.habit_id))
+    const dueHabitIds = dueVersions.map((version) => version.habit_id)
+    const existingLogs = await this.getLogsForDateInChunks(dueHabitIds, targetDate)
+    const loggedIds = new Set(existingLogs.map((log) => log.habit_id))
 
     const rows: SkipLogInsert[] = dueVersions
-      .filter((v) => !loggedIds.has(v.habit_id))
-      .map((v) => ({
-        user_id: v.user_id,
-        habit_id: v.habit_id,
-        habit_version_id: v.id,
+      .filter((version) => !loggedIds.has(version.habit_id))
+      .map((version) => ({
+        user_id: version.user_id,
+        habit_id: version.habit_id,
+        habit_version_id: version.id,
         log_date: targetDate,
         completed: false as const,
         status: HabitLogStatus.Skipped,
@@ -108,8 +131,25 @@ export class CloseDayService {
 
     if (rows.length === 0) return 0
 
-    await this.repo.upsertSkipLogs(rows)
+    await this.upsertSkipLogsInChunks(rows)
     return rows.length
+  }
+
+  private async getLogsForDateInChunks(habitIds: string[], targetDate: string) {
+    const logRows = []
+
+    for (const habitIdChunk of chunkArray(habitIds, DEFAULT_FETCH_BATCH_SIZE)) {
+      const chunkLogs = await this.repo.getLogsForDate(habitIdChunk, targetDate)
+      logRows.push(...chunkLogs)
+    }
+
+    return logRows
+  }
+
+  private async upsertSkipLogsInChunks(rows: SkipLogInsert[]): Promise<void> {
+    for (const rowChunk of chunkArray(rows, DEFAULT_UPSERT_BATCH_SIZE)) {
+      await this.repo.upsertSkipLogs(rowChunk)
+    }
   }
 }
 
@@ -120,4 +160,14 @@ function isDueOnDay(frequency: HabitFrequency | string, customDays: number[] | n
     return customDays?.includes(dayOfWeek) ?? false
   }
   return false
+}
+
+function chunkArray<T>(items: T[], chunkSize: number): T[][] {
+  const chunks: T[][] = []
+
+  for (let index = 0; index < items.length; index += chunkSize) {
+    chunks.push(items.slice(index, index + chunkSize))
+  }
+
+  return chunks
 }

@@ -4,12 +4,14 @@ import type { HabitVersion, HabitRow, HabitLogRow, SkipLogInsert } from '../type
 export class HabitRepository {
   constructor(private supabase: SupabaseClient) {}
 
-  async getVersionsForDate(targetDate: string): Promise<HabitVersion[]> {
+  async getVersionsForDate(targetDate: string, start = 0, batchSize = 500): Promise<HabitVersion[]> {
     const { data, error } = await this.supabase
       .from('habit_versions')
       .select('id, habit_id, user_id, frequency, custom_days, valid_from, valid_to')
       .lte('valid_from', targetDate)
       .or(`valid_to.is.null,valid_to.gte.${targetDate}`)
+      .order('id', { ascending: true })
+      .range(start, start + batchSize - 1)
 
     if (error) throw new RepositoryError('Falha ao buscar versões dos hábitos', error.message)
     return (data ?? []) as HabitVersion[]

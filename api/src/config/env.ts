@@ -8,6 +8,8 @@ const envSchema = z.object({
   TZ: z.string().default('Europe/Lisbon'),
   CRON_CLOSE_DAY_SCHEDULE: z.string().default('55 23 * * *'),
   JOB_TRIGGER_TOKEN: z.string().min(16).optional(),
+  CLOSE_DAY_FETCH_BATCH_SIZE: z.coerce.number().int().positive().default(500),
+  CLOSE_DAY_UPSERT_BATCH_SIZE: z.coerce.number().int().positive().default(200),
 })
 
 function loadEnv() {
