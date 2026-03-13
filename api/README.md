@@ -51,6 +51,7 @@ pnpm dev               # tsx watch mode (cron jobs ativos)
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key (nunca expor no client)        |                 |
 | `TZ`                        | Timezone IANA para os cron jobs                 | `Europe/Lisbon` |
 | `CRON_CLOSE_DAY_SCHEDULE`   | Expressão cron para o job de fechamento do dia  | `55 23 * * *`   |
+| `JOB_TRIGGER_TOKEN`         | Token Bearer para disparar jobs manualmente     |                 |
 
 Para produção, crie um arquivo local `.env.production` a partir de `.env.production.example`.
 
@@ -93,6 +94,43 @@ http://104.248.94.247/
 ```
 GET /api/health
 ```
+
+### Trigger manual da rotina de fechamento
+
+```text
+GET /api/jobs/close-day
+POST /api/jobs/close-day
+```
+
+Executa manualmente a rotina que marca os dias anteriores sem log como `skipped`.
+
+Autenticação obrigatória:
+
+```text
+Authorization: Bearer <JOB_TRIGGER_TOKEN>
+```
+
+Exemplos com `curl`:
+
+```bash
+curl -X POST \
+	-H "Authorization: Bearer SEU_TOKEN" \
+	http://104.248.94.247/api/jobs/close-day
+
+curl -X POST \
+	-H "Authorization: Bearer SEU_TOKEN" \
+	"http://104.248.94.247/api/jobs/close-day?date=2026-03-12&from=2026-03-07"
+
+curl \
+	-H "Authorization: Bearer SEU_TOKEN" \
+	http://104.248.94.247/api/jobs/close-day
+```
+
+Comportamento:
+
+- sem parâmetros, processa automaticamente o backfill padrão do serviço
+- `date=YYYY-MM-DD`: define a última data a processar
+- `from=YYYY-MM-DD`: define a data inicial do backfill
 
 ### Webhooks
 

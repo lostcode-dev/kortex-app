@@ -7,6 +7,7 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   TZ: z.string().default('Europe/Lisbon'),
   CRON_CLOSE_DAY_SCHEDULE: z.string().default('55 23 * * *'),
+  JOB_TRIGGER_TOKEN: z.string().min(16).optional(),
 })
 
 function loadEnv() {
