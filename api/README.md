@@ -52,6 +52,8 @@ pnpm dev               # tsx watch mode (cron jobs ativos)
 | `TZ`                        | Timezone IANA para os cron jobs                 | `Europe/Lisbon` |
 | `CRON_CLOSE_DAY_SCHEDULE`   | Expressão cron para o job de fechamento do dia  | `55 23 * * *`   |
 
+Para produção, crie um arquivo local `.env.production` a partir de `.env.production.example`.
+
 ## Cron Jobs
 
 ### close-day
@@ -144,6 +146,7 @@ Crie um arquivo `.deploy.env` na raiz de `api/` a partir deste modelo:
 DEPLOY_HOST=104.248.94.247
 DEPLOY_USER=root
 DEPLOY_PATH=/var/www/second-brain/api
+DEPLOY_ENV_SOURCE=/absolute/path/to/api/.env.production
 
 # Opcional
 DEPLOY_SSH_PORT=22
@@ -158,6 +161,8 @@ REMOTE_NODE_MAJOR=20
 ```
 
 Esse arquivo fica fora do Git.
+
+Também crie um arquivo local `.env.production` a partir de [api/.env.production.example](/home/daniel-soares/personal_projects/second-brain/api/.env.production.example). Esse arquivo será enviado automaticamente para o servidor como `/var/www/second-brain/api/.env` durante `remote-bootstrap` e `remote-deploy`.
 
 ### Primeira vez no servidor
 
@@ -200,6 +205,7 @@ Esse comando:
 - provisiona Node.js e PM2 no Droplet se necessário
 - cria o diretório remoto se necessário
 - envia apenas `dist/`, `scripts/server.sh` e `.env.example`
+- envia o arquivo local definido em `DEPLOY_ENV_SOURCE` para o servidor como `.env`
 - executa `./scripts/server.sh bootstrap-artifact` no servidor
 
 Se quiser provisionar o runtime antes, isoladamente:

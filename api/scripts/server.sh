@@ -44,6 +44,10 @@ remote_node_major() {
   printf '%s' "${REMOTE_NODE_MAJOR:-20}"
 }
 
+local_runtime_env_file() {
+  printf '%s' "${DEPLOY_ENV_SOURCE:-$ROOT_DIR/.env.production}"
+}
+
 ssh_key_args() {
   if [[ -n "${DEPLOY_SSH_KEY_PATH:-}" ]]; then
     printf '%s' "-i $DEPLOY_SSH_KEY_PATH"
@@ -124,6 +128,27 @@ sync_remote_artifact() {
     --exclude '*' \
     -e "$rsync_command" \
     "$ROOT_DIR/" "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
+}
+
+sync_remote_env() {
+  require_remote_config
+  require_command rsync
+
+  local rsync_command
+  local env_source
+  rsync_command="$(rsync_ssh_command)"
+  env_source="$(local_runtime_env_file)"
+
+  if [[ ! -f "$env_source" ]]; then
+    echo "Erro: arquivo de ambiente de produção não encontrado em $env_source"
+    echo "Crie esse arquivo localmente antes do deploy remoto."
+    exit 1
+  fi
+
+  echo "Enviando arquivo de ambiente para ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/.env..."
+  rsync -az \
+    -e "$rsync_command" \
+    "$env_source" "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/.env"
 }
 
 remote_prepare_dir() {
@@ -357,6 +382,7 @@ remote_artifact_bootstrap() {
   remote_provision_runtime
   remote_prepare_dir
   sync_remote_artifact
+  sync_remote_env
   remote_exec "cd '$DEPLOY_PATH' && chmod +x ./scripts/server.sh && ./scripts/server.sh bootstrap-artifact"
   echo "Bootstrap remoto por artefato concluído."
 }
@@ -367,6 +393,7 @@ remote_artifact_deploy() {
   remote_provision_runtime
   remote_prepare_dir
   sync_remote_artifact
+  sync_remote_env
   remote_exec "cd '$DEPLOY_PATH' && chmod +x ./scripts/server.sh && ./scripts/server.sh deploy-artifact"
   echo "Deploy remoto por artefato concluído."
 }
