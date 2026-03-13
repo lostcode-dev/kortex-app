@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "typecheck": "tsc --noEmit",
-    "build:bundle": "esbuild src/server.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/server.js --sourcemap",
+    "build:bundle": "esbuild src/server.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/server.cjs --sourcemap",
     "build": "pnpm typecheck && pnpm build:bundle",
-    "start": "node dist/server.js",
+    "start": "node dist/server.cjs",
     "server:bootstrap": "bash ./scripts/server.sh bootstrap",
     "server:deploy": "bash ./scripts/server.sh deploy",
     "server:remote-bootstrap": "bash ./scripts/server.sh remote-bootstrap",

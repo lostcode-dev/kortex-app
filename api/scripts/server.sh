@@ -3,9 +3,9 @@ set -euo pipefail
 
 APP_NAME="second-brain-api"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ECOSYSTEM_FILE="$ROOT_DIR/ecosystem.config.cjs"
 LOG_DIR="$ROOT_DIR/logs"
 DEPLOY_ENV_FILE="$ROOT_DIR/.deploy.env"
+RUNTIME_ENTRY="$ROOT_DIR/dist/server.cjs"
 
 cd "$ROOT_DIR"
 
@@ -109,8 +109,8 @@ sync_remote_artifact() {
   local rsync_command
   rsync_command="$(rsync_ssh_command)"
 
-  if [[ ! -f "$ROOT_DIR/dist/server.js" ]]; then
-    echo "Erro: artefato não encontrado em dist/server.js. Rode o build local antes do deploy por artefato."
+  if [[ ! -f "$ROOT_DIR/dist/server.cjs" ]]; then
+    echo "Erro: artefato não encontrado em dist/server.cjs. Rode o build local antes do deploy por artefato."
     exit 1
   fi
 
@@ -121,7 +121,6 @@ sync_remote_artifact() {
     --include 'scripts/' \
     --include 'scripts/server.sh' \
     --include '.env.example' \
-    --include 'ecosystem.config.cjs' \
     --exclude '*' \
     -e "$rsync_command" \
     "$ROOT_DIR/" "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
@@ -250,18 +249,18 @@ start_app() {
     exit 1
   fi
   echo "Iniciando aplicação no PM2..."
-  pm2 start "$ECOSYSTEM_FILE"
+  NODE_ENV=production pm2 start node --name "$APP_NAME" --cwd "$ROOT_DIR" -- "$RUNTIME_ENTRY"
 }
 
 restart_app() {
   ensure_pm2
   ensure_logs_dir
-  echo "Reiniciando aplicação no PM2..."
+  echo "Recriando aplicação no PM2 com a configuração atual..."
   if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
-    pm2 restart "$APP_NAME"
-  else
-    pm2 start "$ECOSYSTEM_FILE"
+    pm2 delete "$APP_NAME"
   fi
+
+  NODE_ENV=production pm2 start node --name "$APP_NAME" --cwd "$ROOT_DIR" -- "$RUNTIME_ENTRY"
 }
 
 stop_app() {
@@ -345,21 +344,11 @@ deploy_artifact() {
 }
 
 remote_bootstrap() {
-  require_remote_config
-  remote_provision_runtime
-  remote_prepare_dir
-  sync_remote_files
-  remote_exec "cd '$DEPLOY_PATH' && chmod +x ./scripts/server.sh && ./scripts/server.sh bootstrap"
-  echo "Bootstrap remoto concluído."
+  remote_artifact_bootstrap
 }
 
 remote_deploy() {
-  require_remote_config
-  remote_provision_runtime
-  remote_prepare_dir
-  sync_remote_files
-  remote_exec "cd '$DEPLOY_PATH' && chmod +x ./scripts/server.sh && ./scripts/server.sh deploy"
-  echo "Deploy remoto concluído."
+  remote_artifact_deploy
 }
 
 remote_artifact_bootstrap() {
@@ -457,8 +446,8 @@ Comandos:
   deploy      Atualiza dependências, gera novo build e reinicia no PM2
   bootstrap-artifact  Sobe no PM2 usando apenas o artefato já buildado
   deploy-artifact     Atualiza no PM2 usando apenas o artefato já buildado
-  remote-bootstrap  Envia arquivos por SSH/rsync e executa bootstrap no servidor
-  remote-deploy     Envia arquivos por SSH/rsync e executa deploy no servidor
+  remote-bootstrap  Fluxo padrão: builda localmente e sobe só o runtime no servidor
+  remote-deploy     Fluxo padrão: builda localmente e envia só o runtime no servidor
   remote-artifact-bootstrap  Builda localmente e envia só o runtime para o servidor
   remote-artifact-deploy     Builda localmente e envia só o runtime para o servidor
   remote-provision  Instala Node.js, pnpm e PM2 no servidor remoto

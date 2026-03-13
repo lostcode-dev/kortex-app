@@ -109,8 +109,8 @@ Endpoint de exemplo para receber payloads externos.
 | `pnpm start`     | Roda build de produção           |
 | `pnpm server:bootstrap` | Primeira subida no servidor com PM2 |
 | `pnpm server:deploy` | Deploy de manutenção com restart |
-| `pnpm server:remote-bootstrap` | Envia arquivos e faz bootstrap remoto via SSH |
-| `pnpm server:remote-deploy` | Envia arquivos e faz deploy remoto via SSH |
+| `pnpm server:remote-bootstrap` | Fluxo padrão: build local + upload só do runtime |
+| `pnpm server:remote-deploy` | Fluxo padrão: build local + deploy só do runtime |
 | `pnpm server:artifact-bootstrap` | Sobe localmente usando só o artefato já buildado |
 | `pnpm server:artifact-deploy` | Atualiza localmente usando só o artefato já buildado |
 | `pnpm server:remote-artifact-bootstrap` | Builda localmente e sobe só o runtime no servidor |
@@ -134,7 +134,7 @@ Endpoint de exemplo para receber payloads externos.
 
 Foi criado o script [scripts/server.sh](/home/daniel-soares/personal_projects/second-brain/api/scripts/server.sh) para simplificar tanto a primeira implantação quanto a manutenção futura.
 
-Ele também suporta deploy remoto via SSH/rsync, para você rodar a partir da sua máquina local sem entrar manualmente no servidor em cada deploy.
+Ele também suporta deploy remoto via SSH/rsync, para você rodar a partir da sua máquina local sem entrar manualmente no servidor em cada deploy. O fluxo legado com install/build no servidor foi removido.
 
 ### Configuração do deploy remoto
 
@@ -182,7 +182,7 @@ O comando `bootstrap` faz:
 Fluxo recomendado para este projeto:
 
 ```bash
-pnpm server:remote-artifact-bootstrap
+pnpm server:remote-bootstrap
 ```
 
 Esse modo evita `pnpm install` no Droplet. O build acontece localmente e o servidor recebe apenas o que precisa para rodar.
@@ -191,33 +191,16 @@ Esse modo evita `pnpm install` no Droplet. O build acontece localmente e o servi
 
 ```bash
 cd /caminho/para/second-brain/api
-pnpm server:remote-artifact-bootstrap
-```
-
-Esse comando:
-
-- gera o bundle local em `dist/server.js`
-- provisiona Node.js e PM2 no Droplet se necessário
-- cria o diretório remoto se necessário
-- envia apenas `dist/`, `ecosystem.config.cjs`, `scripts/server.sh` e `.env.example`
-- executa `./scripts/server.sh bootstrap-artifact` no servidor
-
-### Primeira vez a partir da sua máquina local com install/build remoto
-
-```bash
-cd /caminho/para/second-brain/api
 pnpm server:remote-bootstrap
 ```
 
 Esse comando:
 
-- provisiona Node.js, pnpm e PM2 no Droplet se ainda não existirem
+- gera o bundle local em `dist/server.cjs`
+- provisiona Node.js e PM2 no Droplet se necessário
 - cria o diretório remoto se necessário
-- envia os arquivos com `rsync`
-- exclui do envio `node_modules`, `dist`, `logs`, `.env`, `.deploy.env` e `scripts/keys`
-- executa `./scripts/server.sh bootstrap` no servidor
-
-Observação: em Droplets pequenos ou com rede mais lenta, o `pnpm install` pode demorar alguns minutos. O script agora usa timeout maior e até 3 tentativas automáticas para reduzir falhas transitórias do registry.
+- envia apenas `dist/`, `scripts/server.sh` e `.env.example`
+- executa `./scripts/server.sh bootstrap-artifact` no servidor
 
 Se quiser provisionar o runtime antes, isoladamente:
 
@@ -245,7 +228,7 @@ O comando `deploy` faz:
 Fluxo recomendado para deploys futuros:
 
 ```bash
-pnpm server:remote-artifact-deploy
+pnpm server:remote-deploy
 ```
 
 Esse modo recompila localmente e sincroniza só o runtime já pronto.
@@ -254,15 +237,9 @@ Esse modo recompila localmente e sincroniza só o runtime já pronto.
 
 ```bash
 cd /caminho/para/second-brain/api
-pnpm server:remote-artifact-deploy
-```
-
-### Manutenção futura a partir da sua máquina local com install/build remoto
-
-```bash
-cd /caminho/para/second-brain/api
 pnpm server:remote-deploy
 ```
+
 
 Comandos remotos adicionais:
 
@@ -328,32 +305,6 @@ Se depois você apontar um domínio, basta trocar `NGINX_SERVER_NAME` e reexecut
 npm install -g pm2
 ```
 
-### Configuração (ecosystem.config.cjs)
-
-O arquivo [ecosystem.config.cjs](/home/daniel-soares/personal_projects/second-brain/api/ecosystem.config.cjs) já foi criado na raiz de `api/`:
-
-```js
-module.exports = {
-  apps: [{
-    name: 'second-brain-api',
-    script: 'dist/server.js',
-    instances: 1,            // ⚠️ IMPORTANTE: apenas 1 instância
-    exec_mode: 'fork',       // fork, NÃO cluster
-    env: {
-      NODE_ENV: 'production',
-    },
-    // Logs da aplicação são geridos pelo logger interno
-    error_file: '/dev/null',
-    out_file: '/dev/null',
-    merge_logs: true,
-    // Restart automático
-    autorestart: true,
-    max_restarts: 10,
-    restart_delay: 5000,
-  }]
-}
-```
-
 ### Comandos
 
 ```bash
@@ -361,7 +312,7 @@ module.exports = {
 pnpm build
 
 # Iniciar
-pm2 start ecosystem.config.cjs
+NODE_ENV=production pm2 start node --name second-brain-api --cwd /var/www/second-brain/api -- /var/www/second-brain/api/dist/server.cjs
 
 # Ver status
 pm2 status
