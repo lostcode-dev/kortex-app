@@ -1,0 +1,352 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+APP_NAME="second-brain-api"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ECOSYSTEM_FILE="$ROOT_DIR/ecosystem.config.cjs"
+LOG_DIR="$ROOT_DIR/logs"
+DEPLOY_ENV_FILE="$ROOT_DIR/.deploy.env"
+
+cd "$ROOT_DIR"
+
+if [[ -f "$DEPLOY_ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$DEPLOY_ENV_FILE"
+fi
+
+current_log_file() {
+  date +"%F"
+}
+
+require_command() {
+  local command_name="$1"
+  if ! command -v "$command_name" >/dev/null 2>&1; then
+    echo "Erro: comando '$command_name' não encontrado."
+    exit 1
+  fi
+}
+
+require_remote_config() {
+  : "${DEPLOY_HOST:?Erro: defina DEPLOY_HOST no .deploy.env ou no ambiente}"
+  : "${DEPLOY_USER:?Erro: defina DEPLOY_USER no .deploy.env ou no ambiente}"
+  : "${DEPLOY_PATH:?Erro: defina DEPLOY_PATH no .deploy.env ou no ambiente}"
+}
+
+nginx_server_name() {
+  printf '%s' "${NGINX_SERVER_NAME:-$DEPLOY_HOST}"
+}
+
+nginx_proxy_port() {
+  printf '%s' "${NGINX_PROXY_PORT:-4000}"
+}
+
+ssh_key_args() {
+  if [[ -n "${DEPLOY_SSH_KEY_PATH:-}" ]]; then
+    printf '%s' "-i $DEPLOY_SSH_KEY_PATH"
+  fi
+}
+
+ssh_options() {
+  local options=(-o BatchMode=yes -o StrictHostKeyChecking=accept-new)
+  if [[ -n "${DEPLOY_SSH_PORT:-}" ]]; then
+    options+=( -p "$DEPLOY_SSH_PORT" )
+  fi
+  if [[ -n "${DEPLOY_SSH_KEY_PATH:-}" ]]; then
+    options+=( -i "$DEPLOY_SSH_KEY_PATH" )
+  fi
+  printf '%q ' "${options[@]}"
+}
+
+rsync_ssh_command() {
+  local command=(ssh)
+  if [[ -n "${DEPLOY_SSH_PORT:-}" ]]; then
+    command+=( -p "$DEPLOY_SSH_PORT" )
+  fi
+  if [[ -n "${DEPLOY_SSH_KEY_PATH:-}" ]]; then
+    command+=( -i "$DEPLOY_SSH_KEY_PATH" )
+  fi
+  command+=( -o BatchMode=yes -o StrictHostKeyChecking=accept-new )
+  printf '%q ' "${command[@]}"
+}
+
+remote_exec() {
+  require_remote_config
+  require_command ssh
+
+  local remote_command="$1"
+  local ssh_command="ssh $(ssh_options) ${DEPLOY_USER}@${DEPLOY_HOST}"
+  eval "$ssh_command $(printf '%q' "$remote_command")"
+}
+
+sync_remote_files() {
+  require_remote_config
+  require_command rsync
+
+  local rsync_command
+  rsync_command="$(rsync_ssh_command)"
+
+  echo "Sincronizando arquivos para ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}..."
+  rsync -az --delete \
+    --exclude '.git/' \
+    --exclude 'node_modules/' \
+    --exclude 'dist/' \
+    --exclude 'logs/' \
+    --exclude '.env' \
+    --exclude '.deploy.env' \
+    --exclude 'scripts/keys/' \
+    -e "$rsync_command" \
+    "$ROOT_DIR/" "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
+}
+
+remote_prepare_dir() {
+  require_remote_config
+  remote_exec "mkdir -p '$DEPLOY_PATH'"
+}
+
+ensure_pm2() {
+  if ! command -v pm2 >/dev/null 2>&1; then
+    echo "PM2 não encontrado. Instalando globalmente..."
+    npm install -g pm2
+  fi
+}
+
+ensure_env() {
+  if [[ ! -f "$ROOT_DIR/.env" ]]; then
+    echo "Arquivo .env não encontrado. Criando a partir de .env.example..."
+    cp "$ROOT_DIR/.env.example" "$ROOT_DIR/.env"
+    echo "Preencha $ROOT_DIR/.env antes de subir em produção."
+  fi
+}
+
+ensure_logs_dir() {
+  mkdir -p "$LOG_DIR"
+}
+
+install_deps() {
+  require_command pnpm
+  echo "Instalando dependências..."
+  pnpm install --frozen-lockfile
+}
+
+build_app() {
+  require_command pnpm
+  echo "Gerando build de produção..."
+  pnpm build
+}
+
+start_app() {
+  ensure_pm2
+  ensure_logs_dir
+  if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
+    echo "Aplicação já existe no PM2. Use restart ou deploy."
+    exit 1
+  fi
+  echo "Iniciando aplicação no PM2..."
+  pm2 start "$ECOSYSTEM_FILE"
+}
+
+restart_app() {
+  ensure_pm2
+  ensure_logs_dir
+  echo "Reiniciando aplicação no PM2..."
+  if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
+    pm2 restart "$APP_NAME"
+  else
+    pm2 start "$ECOSYSTEM_FILE"
+  fi
+}
+
+stop_app() {
+  ensure_pm2
+  echo "Parando aplicação no PM2..."
+  pm2 stop "$APP_NAME"
+}
+
+delete_app() {
+  ensure_pm2
+  echo "Removendo aplicação do PM2..."
+  pm2 delete "$APP_NAME"
+}
+
+show_status() {
+  ensure_pm2
+  pm2 status
+}
+
+show_logs() {
+  ensure_logs_dir
+  local target_date="${2:-$(current_log_file)}"
+  local target_file="$LOG_DIR/$target_date.log"
+
+  if [[ ! -f "$target_file" ]]; then
+    echo "Log do dia $target_date não encontrado em $target_file"
+    exit 1
+  fi
+
+  tail -f "$target_file"
+}
+
+list_logs() {
+  ensure_logs_dir
+  ls -1 "$LOG_DIR" | sort
+}
+
+save_pm2() {
+  ensure_pm2
+  pm2 save
+}
+
+bootstrap() {
+  require_command node
+  require_command npm
+  require_command pnpm
+  ensure_env
+  install_deps
+  build_app
+  ensure_pm2
+  ensure_logs_dir
+  restart_app
+  save_pm2
+  echo "Bootstrap concluído."
+  echo "Se ainda não configurou o startup do PM2 no servidor, rode: pm2 startup && pm2 save"
+}
+
+deploy() {
+  ensure_env
+  install_deps
+  build_app
+  restart_app
+  echo "Deploy concluído."
+}
+
+remote_bootstrap() {
+  require_remote_config
+  remote_prepare_dir
+  sync_remote_files
+  remote_exec "cd '$DEPLOY_PATH' && chmod +x ./scripts/server.sh && ./scripts/server.sh bootstrap"
+  echo "Bootstrap remoto concluído."
+}
+
+remote_deploy() {
+  require_remote_config
+  remote_prepare_dir
+  sync_remote_files
+  remote_exec "cd '$DEPLOY_PATH' && chmod +x ./scripts/server.sh && ./scripts/server.sh deploy"
+  echo "Deploy remoto concluído."
+}
+
+remote_status() {
+  require_remote_config
+  remote_exec "cd '$DEPLOY_PATH' && ./scripts/server.sh status"
+}
+
+remote_logs() {
+  require_remote_config
+  local target_date="${2:-$(current_log_file)}"
+  remote_exec "cd '$DEPLOY_PATH' && ./scripts/server.sh logs '$target_date'"
+}
+
+remote_nginx_setup() {
+  require_remote_config
+
+  local server_name
+  local proxy_port
+  server_name="$(nginx_server_name)"
+  proxy_port="$(nginx_proxy_port)"
+
+  remote_exec "export SERVER_NAME='$server_name' PROXY_PORT='$proxy_port'; bash -se" <<'EOF'
+set -euo pipefail
+
+apt-get update
+apt-get install -y nginx
+
+cat > /etc/nginx/sites-available/second-brain-api <<NGINX
+server {
+  listen 80;
+  listen [::]:80;
+  server_name ${SERVER_NAME};
+
+  client_max_body_size 10m;
+
+  location / {
+    proxy_pass http://127.0.0.1:${PROXY_PORT};
+    proxy_http_version 1.1;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+    proxy_set_header Upgrade \$http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_read_timeout 60s;
+  }
+}
+NGINX
+
+ln -sfn /etc/nginx/sites-available/second-brain-api /etc/nginx/sites-enabled/second-brain-api
+rm -f /etc/nginx/sites-enabled/default
+nginx -t
+systemctl enable nginx
+systemctl restart nginx
+
+if command -v ufw >/dev/null 2>&1; then
+  ufw allow 'Nginx Full' || true
+fi
+EOF
+
+  echo "Nginx remoto configurado para proxy em http://$(nginx_server_name) -> 127.0.0.1:$(nginx_proxy_port)"
+}
+
+remote_nginx_test() {
+  require_remote_config
+  remote_exec "nginx -t && systemctl status nginx --no-pager"
+}
+
+usage() {
+  cat <<'EOF'
+Uso: ./scripts/server.sh <comando>
+
+Comandos:
+  bootstrap   Primeira subida: valida ambiente, instala deps, builda e sobe com PM2
+  deploy      Atualiza dependências, gera novo build e reinicia no PM2
+  remote-bootstrap  Envia arquivos por SSH/rsync e executa bootstrap no servidor
+  remote-deploy     Envia arquivos por SSH/rsync e executa deploy no servidor
+  remote-status     Consulta status da app no servidor remoto
+  remote-logs       Acompanha log diário remoto (ou outro dia: remote-logs YYYY-MM-DD)
+  remote-nginx-setup Instala/configura Nginx remoto para expor a API
+  remote-nginx-test  Valida a config e o status do Nginx remoto
+  install     Instala dependências com pnpm
+  build       Gera build de produção
+  start       Sobe a aplicação no PM2
+  restart     Reinicia a aplicação no PM2
+  stop        Para a aplicação no PM2
+  delete      Remove a aplicação do PM2
+  status      Mostra status no PM2
+  logs        Acompanha o log diário atual (ou outro dia: logs YYYY-MM-DD)
+  list-logs   Lista os arquivos de log disponíveis
+  save        Salva o estado atual do PM2
+EOF
+}
+
+COMMAND="${1:-}"
+
+case "$COMMAND" in
+  bootstrap) bootstrap ;;
+  deploy) deploy ;;
+  remote-bootstrap) remote_bootstrap ;;
+  remote-deploy) remote_deploy ;;
+  remote-status) remote_status ;;
+  remote-logs) remote_logs "$@" ;;
+  remote-nginx-setup) remote_nginx_setup ;;
+  remote-nginx-test) remote_nginx_test ;;
+  install) install_deps ;;
+  build) build_app ;;
+  start) start_app ;;
+  restart) restart_app ;;
+  stop) stop_app ;;
+  delete) delete_app ;;
+  status) show_status ;;
+  logs) show_logs "$@" ;;
+  list-logs) list_logs ;;
+  save) save_pm2 ;;
+  *) usage; exit 1 ;;
+esac
