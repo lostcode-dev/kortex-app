@@ -594,11 +594,11 @@ const difficultyFilterOptions = computed(() => [
   🔢 Lógica / Regras de Negócio
   ========================
 
-  - [IN TEST] Corrigir cálculo do Streak.
+  - [OK] Corrigir cálculo do Streak.
     Atualmente, quando um hábito não é marcado no dia, ele não está sendo contabilizado corretamente.
     É necessário garantir que hábitos não concluídos interrompam ou atualizem o streak de forma correta.
 
-  - [IN TEST] Criar rotina automática de fechamento do dia.
+  - [OK] Criar rotina automática de fechamento do dia.
     No final do dia, todos os hábitos que não foram marcados como concluídos devem ser automaticamente registrados como "skipped".
 
   - Implementar histórico de empilhamento (habit stacking history).

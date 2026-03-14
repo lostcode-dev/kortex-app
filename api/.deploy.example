@@ -1,8 +1,0 @@
-DEPLOY_HOST=your-server-ip
-DEPLOY_USER=root
-DEPLOY_PATH=/var/www/second-brain/api
-DEPLOY_ENV_SOURCE=/absolute/path/to/api/.env.production
-
-# Optional
-DEPLOY_SSH_PORT=22
-DEPLOY_SSH_KEY_PATH=/home/your-user/.ssh/id_ed25519
