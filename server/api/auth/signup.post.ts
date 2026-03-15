@@ -51,17 +51,23 @@ export default eventHandler(async (event) => {
           user_id: data.user.id,
           primary_color: 'emerald',
           neutral_color: 'slate',
-          color_mode: 'dark'
+          color_mode: 'dark',
+          timezone: 'UTC'
         }, { onConflict: 'user_id' }),
       supabaseAdmin
         .from('notification_preferences')
         .upsert({
           user_id: data.user.id,
+          channel_in_app: true,
           channel_email: true,
-          channel_desktop: false,
-          digest_weekly: false,
+          channel_web_push: false,
+          channel_mobile_push: false,
+          habit_reminders: true,
+          weekly_digest: false,
           product_updates: true,
-          important_updates: true
+          important_updates: true,
+          web_push_permission: 'default',
+          mobile_push_permission: 'default'
         }, { onConflict: 'user_id' })
     ])
 

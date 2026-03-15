@@ -12,6 +12,7 @@ type UserPreferences = {
   primary_color: string
   neutral_color: string
   color_mode: ColorModePreference
+  timezone: string
 }
 
 type PreferencesState = {
@@ -19,6 +20,7 @@ type PreferencesState = {
   primary_color: string
   neutral_color: string
   color_mode: ColorModePreference
+  timezone: string
 }
 
 type ThemePreset = UserPreferences
@@ -26,13 +28,15 @@ type ThemePreset = UserPreferences
 const PUBLIC_THEME: ThemePreset = {
   primary_color: 'green',
   neutral_color: 'zinc',
-  color_mode: ColorModePreference.Dark
+  color_mode: ColorModePreference.Dark,
+  timezone: 'UTC'
 }
 
 const BRAND_THEME: ThemePreset = {
   primary_color: 'emerald',
   neutral_color: 'slate',
-  color_mode: ColorModePreference.Dark
+  color_mode: ColorModePreference.Dark,
+  timezone: 'UTC'
 }
 
 export function useUserPreferences() {
@@ -40,7 +44,8 @@ export function useUserPreferences() {
     loaded: false,
     primary_color: BRAND_THEME.primary_color,
     neutral_color: BRAND_THEME.neutral_color,
-    color_mode: BRAND_THEME.color_mode
+    color_mode: BRAND_THEME.color_mode,
+    timezone: BRAND_THEME.timezone
   }))
 
   const appConfig = useAppConfig()
@@ -60,6 +65,7 @@ export function useUserPreferences() {
       state.value.primary_color = data.primary_color
       state.value.neutral_color = data.neutral_color
       state.value.color_mode = data.color_mode
+      state.value.timezone = data.timezone
       state.value.loaded = true
     } catch {
       // Keep brand defaults silently when preferences cannot be loaded.
@@ -71,7 +77,8 @@ export function useUserPreferences() {
     applyTheme({
       primary_color: state.value.primary_color,
       neutral_color: state.value.neutral_color,
-      color_mode: state.value.color_mode
+      color_mode: state.value.color_mode,
+      timezone: state.value.timezone
     })
   }
 
@@ -93,6 +100,7 @@ export function useUserPreferences() {
     if (prefs.primary_color) state.value.primary_color = prefs.primary_color
     if (prefs.neutral_color) state.value.neutral_color = prefs.neutral_color
     if (prefs.color_mode) state.value.color_mode = prefs.color_mode
+    if (prefs.timezone) state.value.timezone = prefs.timezone
 
     applyStoredTheme()
 
@@ -102,7 +110,8 @@ export function useUserPreferences() {
         body: {
           primary_color: state.value.primary_color,
           neutral_color: state.value.neutral_color,
-          color_mode: state.value.color_mode
+          color_mode: state.value.color_mode,
+          timezone: state.value.timezone
         }
       })
     } catch {
@@ -122,6 +131,10 @@ export function useUserPreferences() {
     await save({ color_mode: mode as ColorModePreference })
   }
 
+  async function setTimezone(timezone: string) {
+    await save({ timezone })
+  }
+
   return {
     state: readonly(state),
     applyBrandTheme: () => applyContextTheme(ThemeContext.App),
@@ -130,6 +143,7 @@ export function useUserPreferences() {
     load,
     setPrimaryColor,
     setNeutralColor,
-    setColorMode
+    setColorMode,
+    setTimezone
   }
 }

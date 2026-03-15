@@ -25,6 +25,9 @@ type NotificationRow = {
   sender_avatar_url: string | null
   body: string
   link_path: string | null
+  channels: string[]
+  category: string
+  source: string
   read_at: string | null
   created_at: string
 }
@@ -45,7 +48,7 @@ export default eventHandler(async (event) => {
   const supabase = getSupabaseAdminClient()
   let builder = supabase
     .from('notifications')
-    .select('id,type,sender_name,sender_email,sender_avatar_url,body,link_path,read_at,created_at')
+    .select('id,type,sender_name,sender_email,sender_avatar_url,body,link_path,channels,category,source,read_at,created_at')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(parsed.data.limit)
@@ -69,6 +72,9 @@ export default eventHandler(async (event) => {
     body: row.body,
     date: row.created_at,
     linkPath: row.link_path,
+    channels: row.channels ?? ['in_app'],
+    category: row.category,
+    source: row.source,
     sender: {
       id: 0,
       name: row.sender_name || 'Kortex',

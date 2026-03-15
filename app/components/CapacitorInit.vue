@@ -4,12 +4,14 @@
  * Handles: status bar, keyboard, back button, splash screen.
  */
 import { Capacitor } from '@capacitor/core'
+import { extractNotificationTarget } from '~/utils/notification-target'
 
 const isNative = Capacitor.isNativePlatform()
 
 onMounted(async () => {
   if (!isNative) return
 
+  const runtimeConfig = useRuntimeConfig()
   const { StatusBar, Style } = await import('@capacitor/status-bar')
   const { Keyboard } = await import('@capacitor/keyboard')
   const { SplashScreen } = await import('@capacitor/splash-screen')
@@ -45,6 +47,14 @@ onMounted(async () => {
     } else {
       App.exitApp()
     }
+  })
+
+  App.addListener('appUrlOpen', ({ url }) => {
+    const target = extractNotificationTarget({ url }, runtimeConfig.public.siteUrl)
+    if (!target)
+      return
+
+    void router.push(target)
   })
 
   // Hide splash screen

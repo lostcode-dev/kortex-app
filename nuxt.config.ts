@@ -26,6 +26,12 @@ export default defineNuxtConfig({
     stripeBillingPortalConfigurationId: process.env.STRIPE_BILLING_PORTAL_CONFIGURATION_ID,
 
     public: {
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? '',
+      oneSignalEnabled: process.env.NODE_ENV === 'production' && process.env.NUXT_PUBLIC_ONESIGNAL_ENABLED === 'true',
+      oneSignalAppId: process.env.NUXT_PUBLIC_ONESIGNAL_APP_ID ?? '',
+      oneSignalServiceWorkerPath: process.env.NUXT_PUBLIC_ONESIGNAL_SERVICE_WORKER_PATH ?? '/push/onesignal/OneSignalSDKWorker.js',
+      oneSignalServiceWorkerUpdaterPath: process.env.NUXT_PUBLIC_ONESIGNAL_SERVICE_WORKER_UPDATER_PATH ?? '/push/onesignal/OneSignalSDKUpdaterWorker.js',
+      oneSignalServiceWorkerScope: process.env.NUXT_PUBLIC_ONESIGNAL_SERVICE_WORKER_SCOPE ?? '/push/onesignal/',
       posthogEnabled: process.env.NODE_ENV === 'production' && process.env.NUXT_PUBLIC_POSTHOG_ENABLED === 'true',
       posthogHost: process.env.NUXT_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com',
       posthogKey: process.env.NUXT_PUBLIC_POSTHOG_KEY ?? ''

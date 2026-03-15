@@ -761,7 +761,19 @@ onBeforeUnmount(() => {
     O objetivo é guiar o usuário nas primeiras ações dentro da aplicação,
     como criação do primeiro hábito e entendimento da lógica de funcionamento.
 
-  - Avaliar qual ferramenta utilizar para implementação do onboarding.
+  - Em Hábitos, quando muda de Tab, deveria ficar focado na Tab a dica.
+  - Os btns estão em inglês, de next e previous, deveriam estar em português, de próximo e anterior.
+  - Não passou pelo step de Revisão.
+  - No primeiro step não deveria exibir o botão de voltar, e no último step não deveria exibir o botão de próximo, e sim um de concluir.
+  - Cria também o tour para quando vai criar o primeiro hábito, para mostrar a funcionalidade de criação, e depois quando clica para criar o hábito, tem um tour específico para mostrar as funcionalidades dentro do formulário de criação do hábito.
+
+  -agora preciso entender do onboarding para novos usuários, basicmaente,  ele preencher as informações que precisa, tipo entender o público, também explicar um pouco osbre
+    1 Welcome
+    2 Entender perfil do usuário
+    3 Configuração mínima
+    4 Product tour
+    5 Primeira ação
+  Tempo total ideal: menos de 2 minutos
 
   -->
 
@@ -781,4 +793,13 @@ onBeforeUnmount(() => {
   - Modal está ocupando mais espaço na altura, sendo que deveria ocupar uma altura máxima,
     e o conteúdo interno deveria ser scrollável, para evitar que o usuário tenha que lidar com a altura do modal, e focar somente no conteúdo.
     Tomar cuidado para não quebrar os select e essas coisas que estão dentro do modal, que tem um comportamento diferente, e podem acabar ficando com uma altura fixa, e não se adaptando ao conteúdo.
- -->
+
+  - Possível transformar para Desktop (Windows, Linux)?
+    - Verificar se a aplicação pode ser adaptada para um layout desktop, considerando a experiência do usuário e a usabilidade em telas maiores.  
+ 
+  - Integração com o Telegram para toda vez que alguém criar uma conta ou deletar uma conta eu conseguir ver;
+  Também seria bom para quando alguém fizesse assinatura, e quando alguém cancelar a assinatura,
+  Ou quando receber algum feedback.
+
+  - In-App Messaging com o One Signal.
+    -->

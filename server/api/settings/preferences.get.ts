@@ -7,7 +7,7 @@ export default eventHandler(async (event) => {
 
   const { data, error } = await supabase
     .from('user_preferences')
-    .select('primary_color, neutral_color, color_mode')
+    .select('primary_color, neutral_color, color_mode, timezone')
     .eq('user_id', user.id)
     .single()
 
@@ -22,13 +22,15 @@ export default eventHandler(async (event) => {
     return {
       primary_color: 'emerald',
       neutral_color: 'slate',
-      color_mode: 'dark'
+      color_mode: 'dark',
+      timezone: 'UTC'
     }
   }
 
   return {
     primary_color: data.primary_color,
     neutral_color: data.neutral_color,
-    color_mode: data.color_mode
+    color_mode: data.color_mode,
+    timezone: data.timezone ?? 'UTC'
   }
 })

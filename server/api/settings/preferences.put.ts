@@ -14,7 +14,8 @@ const VALID_COLOR_MODES = ['light', 'dark'] as const
 const schema = z.object({
   primary_color: z.enum(VALID_PRIMARY_COLORS),
   neutral_color: z.enum(VALID_NEUTRAL_COLORS),
-  color_mode: z.enum(VALID_COLOR_MODES)
+  color_mode: z.enum(VALID_COLOR_MODES),
+  timezone: z.string().trim().min(1).max(120)
 })
 
 export default eventHandler(async (event) => {
@@ -38,7 +39,8 @@ export default eventHandler(async (event) => {
       user_id: user.id,
       primary_color: parsed.data.primary_color,
       neutral_color: parsed.data.neutral_color,
-      color_mode: parsed.data.color_mode
+      color_mode: parsed.data.color_mode,
+      timezone: parsed.data.timezone
     }, { onConflict: 'user_id' })
 
   if (error) {

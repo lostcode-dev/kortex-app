@@ -12,6 +12,9 @@ export type AppNotification = {
   body: string
   date: string
   linkPath?: string | null
+  channels?: string[]
+  category?: string
+  source?: string
   sender: {
     name: string
     email?: string

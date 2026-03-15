@@ -12,6 +12,7 @@ useSeoMeta({
 
 const toast = useToast()
 const { fetchUser } = useAuth()
+const { state: userPreferencesState } = useUserPreferences()
 const requestFetch = useRequestFetch()
 const requestHeaders = import.meta.server ? useRequestHeaders(['cookie']) : undefined
 
@@ -20,6 +21,13 @@ type ProfileResponse = {
   email: string | null
   name: string
   avatar_url: string
+}
+
+type PreferencesResponse = {
+  primary_color: string
+  neutral_color: string
+  color_mode: 'light' | 'dark'
+  timezone: string
 }
 
 const profileSchema = z.object({
@@ -33,6 +41,11 @@ type ProfileSchema = z.output<typeof profileSchema>
 const { data: profileData, status } = await useAsyncData(
   'user-profile',
   () => requestFetch<ProfileResponse>('/api/auth/profile', { headers: requestHeaders })
+)
+
+const { data: preferencesData, status: preferencesStatus } = await useAsyncData(
+  'user-settings-preferences',
+  () => requestFetch<PreferencesResponse>('/api/settings/preferences', { headers: requestHeaders })
 )
 
 const profile = reactive<Partial<ProfileSchema>>({
@@ -49,7 +62,35 @@ watch(profileData, (newData) => {
   }
 })
 
+const browserTimezone = computed(() => import.meta.client
+  ? Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+  : 'UTC')
+const selectedTimezone = ref(preferencesData.value?.timezone || browserTimezone.value)
+
+watch(preferencesData, (newData) => {
+  if (!newData)
+    return
+
+  selectedTimezone.value = newData.timezone
+}, { immediate: true })
+
+const timezoneOptions = computed(() => {
+  const builtInTimezones = typeof Intl.supportedValuesOf === 'function'
+    ? Intl.supportedValuesOf('timeZone')
+    : ['UTC', 'America/Fortaleza', 'America/Sao_Paulo', 'America/New_York', 'Europe/London']
+  const values = new Set([...builtInTimezones, browserTimezone.value, userPreferencesState.value.timezone])
+
+  return Array.from(values)
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b))
+    .map(timezone => ({
+      label: timezone,
+      value: timezone
+    }))
+})
+
 const isSaving = ref(false)
+const isSavingTimezone = ref(false)
 
 async function onSubmit(_event: FormSubmitEvent<ProfileSchema>) {
   if (isSaving.value) return
@@ -78,6 +119,49 @@ async function onSubmit(_event: FormSubmitEvent<ProfileSchema>) {
   } finally {
     isSaving.value = false
   }
+}
+
+async function saveTimezonePreference() {
+  if (isSavingTimezone.value)
+    return
+
+  isSavingTimezone.value = true
+
+  try {
+    await $fetch('/api/settings/preferences', {
+      method: 'PUT',
+      body: {
+        primary_color: preferencesData.value?.primary_color || userPreferencesState.value.primary_color,
+        neutral_color: preferencesData.value?.neutral_color || userPreferencesState.value.neutral_color,
+        color_mode: preferencesData.value?.color_mode || userPreferencesState.value.color_mode,
+        timezone: selectedTimezone.value
+      }
+    })
+
+    if (preferencesData.value) {
+      preferencesData.value = {
+        ...preferencesData.value,
+        timezone: selectedTimezone.value
+      }
+    }
+
+    toast.add({
+      title: 'Timezone atualizada',
+      description: 'O fuso horário da sua conta foi salvo.',
+      color: 'success'
+    })
+  } catch (error: unknown) {
+    const err = error as { data?: { statusMessage?: string }, statusMessage?: string }
+    const message = err?.data?.statusMessage || err?.statusMessage || 'Não foi possível salvar o fuso horário'
+    toast.add({ title: 'Erro', description: message, color: 'error' })
+  } finally {
+    isSavingTimezone.value = false
+  }
+}
+
+function useBrowserTimezone() {
+  selectedTimezone.value = browserTimezone.value
+  void saveTimezonePreference()
 }
 
 const fileRef = ref<HTMLInputElement>()
@@ -185,4 +269,51 @@ function onFileClick() {
       </UFormField>
     </UPageCard>
   </UForm>
+
+  <UPageCard
+    title="Regional"
+    description="Defina o fuso horário usado para agenda, hábitos e notificações."
+    variant="subtle"
+    class="mt-6"
+  >
+    <div v-if="preferencesStatus === 'pending'" class="space-y-3">
+      <USkeleton class="h-11 w-full" />
+      <USkeleton class="h-9 w-40" />
+    </div>
+
+    <template v-else>
+      <UFormField
+        name="timezone"
+        label="Timezone"
+        description="Usada para organizar lembretes, agenda diária e futuras automações."
+        class="flex max-sm:flex-col justify-between items-start gap-4"
+      >
+        <div class="w-full space-y-3">
+          <USelectMenu
+            v-model="selectedTimezone"
+            :items="timezoneOptions"
+            value-key="value"
+            class="w-full"
+          />
+
+          <div class="flex flex-wrap gap-2">
+            <UButton
+              label="Salvar timezone"
+              color="neutral"
+              :loading="isSavingTimezone"
+              :disabled="isSavingTimezone"
+              @click="saveTimezonePreference"
+            />
+            <UButton
+              label="Usar timezone do dispositivo"
+              variant="outline"
+              color="neutral"
+              :disabled="isSavingTimezone || selectedTimezone === browserTimezone"
+              @click="useBrowserTimezone"
+            />
+          </div>
+        </div>
+      </UFormField>
+    </template>
+  </UPageCard>
 </template>
