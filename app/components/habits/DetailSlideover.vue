@@ -6,6 +6,7 @@ const props = defineProps<{
   habit: Habit
   stacks?: HabitStack[]
   open: boolean
+  stackActionsDisabled?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -193,9 +194,14 @@ const incomingStacks = computed(() =>
               size="xs"
               variant="subtle"
               color="neutral"
+              :disabled="props.stackActionsDisabled"
               @click="emit('stack')"
             />
           </div>
+
+          <p v-if="props.stackActionsDisabled" class="text-xs text-muted">
+            Visualização histórica: o empilhamento abaixo reflete a configuração válida nessa data.
+          </p>
 
           <UCard v-if="incomingStacks.length">
             <div class="space-y-2">
@@ -213,6 +219,7 @@ const incomingStacks = computed(() =>
                     {{ stack.triggerHabit?.name ?? 'Hábito removido' }}
                   </span>
                   <UButton
+                    v-if="!props.stackActionsDisabled"
                     icon="i-lucide-x"
                     color="error"
                     variant="ghost"
@@ -242,6 +249,7 @@ const incomingStacks = computed(() =>
                     {{ stack.newHabit?.name ?? 'Hábito removido' }}
                   </span>
                   <UButton
+                    v-if="!props.stackActionsDisabled"
                     icon="i-lucide-x"
                     color="error"
                     variant="ghost"
@@ -269,9 +277,14 @@ const incomingStacks = computed(() =>
               size="xs"
               variant="subtle"
               color="neutral"
+              :disabled="props.stackActionsDisabled"
               @click="emit('stack')"
             />
           </div>
+
+          <p v-if="props.stackActionsDisabled" class="text-xs text-muted">
+            Visualização histórica: o empilhamento desta data não pode ser alterado por aqui.
+          </p>
 
           <UCard>
             <p class="text-sm text-muted">

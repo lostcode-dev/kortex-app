@@ -1,21 +1,18 @@
+import { z } from 'zod'
 import { getSupabaseAdminClient } from '../../utils/supabase'
 import { requireAuthUser } from '../../utils/require-auth'
-import { mapHabitStacks } from '../../utils/habit-stacks'
+
+import { resolveHabitStacksForDate } from '../../utils/habit-stacks'
+
+const querySchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD').optional()
+})
 
 export default eventHandler(async (event) => {
   const user = await requireAuthUser(event)
+  const query = getQuery(event)
+  const params = querySchema.parse(query)
   const supabase = getSupabaseAdminClient()
 
-  const { data, error } = await supabase
-    .from('habit_stacks')
-    .select('*, triggerHabit:habits!trigger_habit_id(id, name), newHabit:habits!new_habit_id(id, name)')
-    .eq('user_id', user.id)
-    .is('archived_at', null)
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    throw createError({ statusCode: 500, statusMessage: 'Falha ao buscar empilhamentos', data: error.message })
-  }
-
-  return mapHabitStacks((data ?? []) as Record<string, unknown>[])
+  return resolveHabitStacksForDate(supabase, user.id, params.date)
 })

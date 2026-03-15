@@ -3,6 +3,7 @@ import { getSupabaseAdminClient } from '../../utils/supabase'
 import { requireAuthUser } from '../../utils/require-auth'
 import { mapHabit, mapHabitFromVersion, fetchHabitTagMap } from '../../utils/habits'
 import { resolveHabitsForDate } from '../../utils/habit-versions'
+import { resolveHabitStacksForDate } from '../../utils/habit-stacks'
 
 const querySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD').optional()
@@ -100,9 +101,11 @@ export default eventHandler(async (event) => {
   }))
 
   const completedCount = result.filter((h) => (h.log as Record<string, unknown> | null)?.completed).length
+  const stacks = await resolveHabitStacksForDate(supabase, user.id, date)
 
   return {
     habits: result,
+    stacks,
     completedCount,
     totalCount: result.length
   }

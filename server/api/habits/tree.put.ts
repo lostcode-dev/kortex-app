@@ -118,13 +118,6 @@ export default eventHandler(async (event) => {
     return !expectedPairs.has(key)
   })
 
-  const archivedStacksByKey = new Map(
-    archivedStacks.map((stack) => [
-      `${String(stack.trigger_habit_id)}:${String(stack.new_habit_id)}`,
-      stack
-    ] as const)
-  )
-
   const stacksToCreate = stackPairs.filter((pair) => {
     const key = `${pair.triggerHabitId}:${pair.newHabitId}`
     return !activeStacks.some((stack) => `${String(stack.trigger_habit_id)}:${String(stack.new_habit_id)}` === key)
@@ -145,24 +138,6 @@ export default eventHandler(async (event) => {
   let createdStacks = 0
 
   for (const pair of stacksToCreate) {
-    const key = `${pair.triggerHabitId}:${pair.newHabitId}`
-    const archivedStack = archivedStacksByKey.get(key)
-
-    if (archivedStack) {
-      const { error: restoreError } = await supabase
-        .from('habit_stacks')
-        .update({ archived_at: null })
-        .eq('id', String(archivedStack.id))
-        .eq('user_id', user.id)
-
-      if (restoreError) {
-        throw createError({ statusCode: 500, statusMessage: 'Falha ao restaurar empilhamento', data: restoreError.message })
-      }
-
-      createdStacks++
-      continue
-    }
-
     const { error: createStackError } = await supabase
       .from('habit_stacks')
       .insert({

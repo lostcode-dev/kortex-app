@@ -54,6 +54,24 @@ const tabs = [
   { label: "Insights", value: "insights", icon: "i-lucide-bar-chart-3" },
 ];
 
+const todayDateKey = computed(
+  () => todayDate.value ?? new Date().toISOString().split("T")[0]!,
+);
+
+const isViewingHistoricalToday = computed(
+  () => todayDateKey.value !== new Date().toISOString().split("T")[0]!,
+);
+
+const todayStacks = computed(() => todayData.value?.stacks ?? []);
+
+const detailStacks = computed(() => {
+  if (activeTab.value === "today") {
+    return todayStacks.value;
+  }
+
+  return stacks.value ?? [];
+});
+
 function ensureLoaded(
   status: Ref<"idle" | "pending" | "success" | "error">,
   refresh: () => Promise<unknown>,
@@ -166,6 +184,16 @@ function onNavigateDate(direction: "prev" | "next") {
 }
 
 async function onSelectHabit(habitId: string) {
+  if (activeTab.value === "today") {
+    const habit = todayData.value?.habits.find((item) => item.id === habitId) ?? null;
+
+    if (habit) {
+      selectedHabit.value = habit;
+      detailSlideoverOpen.value = true;
+      return;
+    }
+  }
+
   const habit = await fetchHabit(habitId);
   if (habit) {
     selectedHabit.value = habit;
@@ -403,11 +431,11 @@ const difficultyFilterOptions = computed(() => [
         <div v-if="activeTab === 'today'">
           <HabitsTodayList
             :habits="todayData?.habits ?? []"
-            :stacks="stacks ?? []"
+            :stacks="todayStacks"
             :completed-count="todayData?.completedCount ?? 0"
             :total-count="todayData?.totalCount ?? 0"
             :loading="todayStatus === 'pending'"
-            :current-date="todayDate ?? new Date().toISOString().split('T')[0]!"
+            :current-date="todayDateKey"
             @toggle="onToggleHabit"
             @select="onSelectHabit"
             @log-with-note="onLogWithNote"
@@ -518,7 +546,8 @@ const difficultyFilterOptions = computed(() => [
     v-if="selectedHabit"
     :open="detailSlideoverOpen"
     :habit="selectedHabit"
-    :stacks="stacks ?? []"
+    :stacks="detailStacks"
+    :stack-actions-disabled="activeTab === 'today' && isViewingHistoricalToday"
     @update:open="detailSlideoverOpen = $event"
     @edit="editModalOpen = true"
     @stack="onStackHabit(selectedHabit)"
@@ -593,7 +622,7 @@ const difficultyFilterOptions = computed(() => [
   ========================
   🔢 Lógica / Regras de Negócio
   ========================
-  
+
   - Implementar histórico de empilhamento (habit stacking history).
     Alterações feitas hoje não devem impactar visualizações de períodos passados.
     Ao visualizar dados antigos, o sistema deve exibir as configurações válidas naquele momento histórico.
@@ -683,4 +712,17 @@ const difficultyFilterOptions = computed(() => [
       - ações realizadas nos hábitos
 
     O tracking deve rodar apenas em produção para evitar poluição de dados com eventos de desenvolvimento.
+ -->
+
+ <!--
+
+ Backlog:
+
+ - Preciso saber os dias, o período que é a da revisão. Porque somente pela semana, é fácil para o usuário se perder no que está avaliando.
+  - Notificação para lembrar de fazer a revisão.
+
+  - No Mobile o menu está ficando como se estivesse fechado.
+  - Não consigo ver o fundo de qualquer página.
+  - ⁠Mudar  o comportamento quando é mobile em hábitos, checkbox pequeno e fica sem espaço para ficar empilhado
+   
  -->

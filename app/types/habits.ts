@@ -358,6 +358,7 @@ export interface HabitTreeSyncNode {
 
 export interface TodayHabitsResponse {
   habits: TodayHabit[]
+  stacks: HabitStack[]
   completedCount: number
   totalCount: number
 }
