@@ -104,6 +104,8 @@ export function useGuidedTour() {
       allowClose: true,
       allowKeyboardControl: true,
       animate: true,
+      doneBtnText: userConfig.doneBtnText ?? 'Concluir',
+      nextBtnText: userConfig.nextBtnText ?? 'Próximo',
       overlayClickBehavior: userConfig.overlayClickBehavior ?? ((_element, _step, { driver }) => {
         if (options.completeOnClose !== false)
           shouldPersistCompletion = true
@@ -112,6 +114,8 @@ export function useGuidedTour() {
       }),
       overlayColor: 'rgba(2, 6, 24, 0.74)',
       popoverClass: 'kortex-guided-tour',
+      prevBtnText: userConfig.prevBtnText ?? 'Anterior',
+      progressText: userConfig.progressText ?? '{{current}} de {{total}}',
       showButtons: ['previous', 'next', 'close'],
       showProgress: true,
       smoothScroll: true,

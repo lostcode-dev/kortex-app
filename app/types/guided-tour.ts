@@ -1,5 +1,7 @@
 export enum GuidedTourKey {
-  HabitsOverview = 'habits-overview'
+  HabitsOverview = 'habits-overview',
+  HabitsFirstHabitEntry = 'habits-first-habit-entry',
+  HabitsFirstHabitCreate = 'habits-first-habit-create'
 }
 
 export interface GuidedTourEntry {
