@@ -184,6 +184,12 @@ export function useAuth() {
       })
 
       if (state.value.ready) {
+        if (!state.value.user && userCookie.value) {
+          log('ensureReady:state-cookie-mismatch')
+          await fetchUser()
+          return
+        }
+
         // Even when ready, proactively refresh if token is near expiry
         if (state.value.user && isTokenExpired()) {
           log('ensureReady:refreshing-ready-state', {
