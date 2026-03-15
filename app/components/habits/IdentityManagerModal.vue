@@ -107,63 +107,8 @@ async function onArchive(identity: Identity) {
   >
     <template #body>
       <div class="space-y-6">
-        <section class="grid gap-4 rounded-3xl border border-default bg-elevated/30 p-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-          <div class="space-y-3">
-            <UBadge color="primary" variant="subtle" size="sm">
-              Gestão de identidades
-            </UBadge>
-
-            <div class="space-y-2">
-              <h3 class="text-xl font-semibold text-highlighted">
-                Organize quem você quer se tornar
-              </h3>
-              <p class="max-w-2xl text-sm leading-6 text-muted">
-                As identidades servem para ligar hábitos a uma narrativa pessoal. Use esta área para manter a lista limpa, revisar descrições e remover o que não faz mais sentido.
-              </p>
-            </div>
-          </div>
-
-          <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-            <UCard>
-              <p class="text-xs uppercase tracking-[0.12em] text-muted">
-                Total
-              </p>
-              <p class="mt-2 text-2xl font-semibold text-highlighted">
-                {{ sortedIdentities.length }}
-              </p>
-            </UCard>
-
-            <UCard>
-              <p class="text-xs uppercase tracking-[0.12em] text-muted">
-                Com descrição
-              </p>
-              <p class="mt-2 text-2xl font-semibold text-highlighted">
-                {{ sortedIdentities.filter(identity => identity.description).length }}
-              </p>
-            </UCard>
-
-            <UCard>
-              <p class="text-xs uppercase tracking-[0.12em] text-muted">
-                Próximo passo
-              </p>
-              <p class="mt-2 text-sm font-medium text-highlighted">
-                Revise identidades vagas e deixe o critério mais específico.
-              </p>
-            </UCard>
-          </div>
-        </section>
-
         <section class="space-y-4">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p class="text-base font-semibold text-highlighted">
-                Lista de identidades
-              </p>
-              <p class="text-sm text-muted">
-                Crie, edite ou exclua identidades sem misturar isso ao formulário do hábito.
-              </p>
-            </div>
-
             <UButton
               icon="i-lucide-plus"
               label="Nova identidade"
