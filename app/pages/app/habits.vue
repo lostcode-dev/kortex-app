@@ -114,12 +114,20 @@ const editModalOpen = ref(false);
 const archiveModalOpen = ref(false);
 const detailSlideoverOpen = ref(false);
 const identityModalOpen = ref(false);
+const identityModalSource = ref<"create" | "edit" | null>(null);
+const pendingIdentityId = ref<string | null>(null);
 const stackCreateModalOpen = ref(false);
 const stackSourceHabit = ref<Habit | null>(null);
 const selectedHabit = ref<Habit | null>(null);
 const settingsModalOpen = ref(false);
 const shareImageModalOpen = ref(false);
 const shareImageHabit = ref<Habit | null>(null);
+const createModalRef = ref<{
+  applyIdentitySelection: (identityId: string | null | undefined) => void;
+} | null>(null);
+const editModalRef = ref<{
+  applyIdentitySelection: (identityId: string | null | undefined) => void;
+} | null>(null);
 
 watch(createModalOpen, (open) => {
   if (open) {
@@ -131,7 +139,10 @@ watch(createModalOpen, (open) => {
 watch(identityModalOpen, (open) => {
   if (open) {
     ensureLoaded(identitiesStatus, refreshIdentities);
+    return;
   }
+
+  identityModalSource.value = null;
 });
 
 watch(stackCreateModalOpen, (open) => {
@@ -217,6 +228,21 @@ function onArchiveHabit(habit: Habit) {
 function onHabitArchived() {
   detailSlideoverOpen.value = false;
   selectedHabit.value = null;
+}
+
+function openIdentityModal(source: "create" | "edit") {
+  identityModalSource.value = source;
+  identityModalOpen.value = true;
+}
+
+function onIdentityCreated(identity: { id: string }) {
+  pendingIdentityId.value = identity.id;
+
+  if (identityModalSource.value === "edit") {
+    editModalRef.value?.applyIdentitySelection(identity.id);
+  } else {
+    createModalRef.value?.applyIdentitySelection(identity.id);
+  }
 }
 
 // ─── Stacking actions ─────────────────────────────────────────────────────────
@@ -562,9 +588,11 @@ const difficultyFilterOptions = computed(() => [
 
   <!-- Modals -->
   <HabitsCreateModal
+    ref="createModalRef"
     :open="createModalOpen"
+    :selected-identity-id="pendingIdentityId"
     @update:open="createModalOpen = $event"
-    @identityModalOpen="identityModalOpen = true"
+    @identityModalOpen="openIdentityModal('create')"
   />
 
   <HabitsShareImageModal
@@ -575,11 +603,13 @@ const difficultyFilterOptions = computed(() => [
 
   <HabitsEditModal
     v-if="selectedHabit"
+    ref="editModalRef"
     :open="editModalOpen"
     :habit="selectedHabit"
+    :selected-identity-id="pendingIdentityId"
     @update:open="editModalOpen = $event"
     @updated="refreshToday()"
-    @identityModalOpen="identityModalOpen = true"
+    @identityModalOpen="openIdentityModal('edit')"
   />
 
   <HabitsArchiveModal
@@ -594,6 +624,7 @@ const difficultyFilterOptions = computed(() => [
   <HabitsIdentityCreateModal
     :open="identityModalOpen"
     @update:open="identityModalOpen = $event"
+    @created="onIdentityCreated"
   />
 
   <HabitsStackCreateModal

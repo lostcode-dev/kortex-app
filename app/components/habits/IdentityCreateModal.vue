@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import * as z from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
+import type { Identity } from '~/types/habits'
 
 const props = defineProps<{
   open: boolean
@@ -8,7 +9,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  'created': []
+  'created': [identity: Identity]
 }>()
 
 const { createIdentity, archiveIdentity, identities, identitiesStatus } = useHabits()
@@ -36,7 +37,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     if (result) {
       state.name = ''
       state.description = ''
-      emit('created')
+      emit('created', result)
+      emit('update:open', false)
     }
   } finally {
     loading.value = false
@@ -127,10 +129,10 @@ async function onArchive(identityId: string, identityName: string) {
             <UCard v-for="identity in identities" :key="identity.id">
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
-                  <p class="font-medium text-highlighted truncate">
+                  <p class="font-medium text-highlighted break-words">
                     {{ identity.name }}
                   </p>
-                  <p v-if="identity.description" class="text-sm text-muted mt-0.5">
+                  <p v-if="identity.description" class="mt-0.5 text-sm text-muted break-words">
                     {{ identity.description }}
                   </p>
                 </div>

@@ -14,6 +14,7 @@ const FORM_ID = "habit-create-form";
 
 const props = defineProps<{
   open: boolean;
+  selectedIdentityId?: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -161,6 +162,34 @@ const identityItems = computed(() => {
   ];
 });
 
+watch(
+  () => props.selectedIdentityId,
+  (identityId) => {
+    if (!props.open || !identityId) return;
+    state.identityId = identityId;
+  },
+);
+
+watch(
+  identities,
+  (items) => {
+    if (!state.identityId) return;
+    const exists = (items ?? []).some((identity) => identity.id === state.identityId);
+    if (!exists) {
+      state.identityId = undefined;
+    }
+  },
+  { deep: false },
+);
+
+function applyIdentitySelection(identityId: string | null | undefined) {
+  state.identityId = identityId ?? undefined;
+}
+
+defineExpose({
+  applyIdentitySelection,
+});
+
 
 function getHabitDifficultyIcon(difficulty: HabitDifficulty) {
   switch (difficulty) {
@@ -301,7 +330,7 @@ function getHabitTypeIcon(habitType: HabitType) {
               </UFormField>
             </div>
 
-            <div class="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
+            <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
               <UFormField label="Identidade" name="identityId" class="min-w-0">
                 <USelect
                   v-model="identityIdModel"
@@ -314,11 +343,12 @@ function getHabitTypeIcon(habitType: HabitType) {
 
               <UButton
                 icon="i-lucide-user-plus"
+                label="Gerenciar"
                 color="neutral"
                 variant="subtle"
                 size="md"
                 type="button"
-                class="self-end"
+                class="w-full justify-center self-end sm:w-auto"
                 aria-label="Gerenciar identidades"
                 @click="emit('identityModalOpen', true)"
               />
