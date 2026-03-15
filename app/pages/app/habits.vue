@@ -635,14 +635,12 @@ const difficultyFilterOptions = computed(() => [
   - É bom deixar somente no no forms a possibilidade de selecionar uma identidade, e fica na 
   aba das 4 leis. Deve tirar do forms o btn de  gereciar identidade, e deve ficar no lado esquerdo de novo hábito.
   Deve exibir uma view completamente diferente, como se fosse uma página separada, com um layout mais limpo e organizado.
-  Com a lista de identidades, e a possibilidade de criar, editar e excluir as identidades. 
+  Com a lista de identidades, e a possibilidade' de criar, editar e excluir as identidades. 
   E quando clicar em criar ou editar, abre um modal para preencher os dados da identidade.
 
   ========================
   🎨 Interface / UX
   ========================
-
-  - Corrigir corte do menu Bubble do Rich Text dentro de modais.
 
   - Melhorar a área de Insights:
     - Atualmente há muito espaço vazio.

@@ -4,7 +4,7 @@ import type { H3Event } from 'h3'
 export type AuthUser = {
   id: string
   email: string | null
-  user_metadata: Record<string, any>
+  user_metadata: Record<string, unknown>
 }
 
 export type AuthUserCookiePayload = {
@@ -29,7 +29,7 @@ function getBaseOptions() {
 }
 
 export function toAuthUser(user: User): AuthUser {
-  const meta = (user.user_metadata ?? {}) as Record<string, any>
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>
 
   return {
     id: user.id,
