@@ -33,7 +33,11 @@ const {
   habitTypeOptions,
   dayOptions,
   identities,
+  identitiesStatus,
+  refreshIdentities,
   tags,
+  tagsStatus,
+  refreshTags,
 } = useHabits();
 
 const schema = z
@@ -98,6 +102,16 @@ watch(
 watch(
   () => props.open,
   (open) => {
+    if (open) {
+      if (identitiesStatus.value === 'idle') {
+        void refreshIdentities();
+      }
+
+      if (tagsStatus.value === 'idle') {
+        void refreshTags();
+      }
+    }
+
     if (!open) activeFormTab.value = "main";
   },
 );
