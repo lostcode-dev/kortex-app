@@ -24,10 +24,61 @@ const AUTH_COOKIE_REVALIDATE_MS = 5 * 60_000
 const pendingFetchMap = new WeakMap<object, Promise<AuthUser | null>>()
 const pendingEnsureMap = new WeakMap<object, Promise<void>>()
 
+function isAuthUserCookiePayload(value: unknown): value is AuthUserCookiePayload {
+  if (!value || typeof value !== 'object')
+    return false
+
+  const payload = value as Partial<AuthUserCookiePayload>
+  return Boolean(payload.user && typeof payload.user === 'object')
+}
+
+function parseAuthUserCookieValue(raw: unknown): AuthUserCookiePayload | null {
+  if (isAuthUserCookiePayload(raw))
+    return raw
+
+  if (typeof raw !== 'string')
+    return null
+
+  const attempts = [raw]
+
+  try {
+    const decoded = decodeURIComponent(raw)
+    if (!attempts.includes(decoded))
+      attempts.push(decoded)
+  } catch {
+    // Ignore malformed URI sequences and try other strategies below.
+  }
+
+  try {
+    const decodedTwice = decodeURIComponent(attempts[attempts.length - 1]!)
+    if (!attempts.includes(decodedTwice))
+      attempts.push(decodedTwice)
+  } catch {
+    // Ignore malformed URI sequences and fall back to the successful attempts.
+  }
+
+  for (const attempt of attempts) {
+    try {
+      const parsed = JSON.parse(attempt) as unknown
+      if (isAuthUserCookiePayload(parsed))
+        return parsed
+    } catch {
+      // Try the next decoding attempt.
+    }
+  }
+
+  return null
+}
+
 export function useAuth() {
   const requestFetch = useRequestFetch()
   const nuxtApp = useNuxtApp()
-  const userCookie = useCookie<string | null>('sb-user', { default: () => null })
+  const userCookie = useCookie<string | null>('sb-user', {
+    default: () => null,
+    path: '/',
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production'
+  })
   const requestHeaders = import.meta.server ? useRequestHeaders(['cookie']) : undefined
 
   const state = useState<AuthState>('auth', () => {
@@ -56,23 +107,22 @@ export function useAuth() {
       return null
     }
 
-    try {
-      const parsed = JSON.parse(decodeURIComponent(raw)) as AuthUserCookiePayload
+    const parsed = parseAuthUserCookieValue(raw)
+    if (parsed) {
       log('parseUserCookie:success', {
         userId: parsed.user?.id ?? null,
         expiresAt: parsed.expiresAt,
         syncedAt: parsed.syncedAt
       })
       return parsed
-    } catch (error: unknown) {
-      const err = error as { message?: string }
-      log('parseUserCookie:error', {
-        message: err?.message ?? null,
-        rawLength: raw.length,
-        rawPreview: raw.slice(0, 80)
-      })
-      return null
     }
+
+    log('parseUserCookie:error', {
+      rawType: typeof raw,
+      rawLength: typeof raw === 'string' ? raw.length : null,
+      rawPreview: typeof raw === 'string' ? raw.slice(0, 80) : null
+    })
+    return null
   }
 
   function setUserCookie(user: AuthUser, session: AuthSession | null = null) {

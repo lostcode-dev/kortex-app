@@ -627,8 +627,6 @@ const difficultyFilterOptions = computed(() => [
   - Melhorar o campo de horário do hábito.
     O objetivo é permitir que o usuário utilize o horário como referência na agenda diária.
 
-  - Personalizar o scroll da aplicação para manter consistência visual com o design do app.
-
   - Corrigir o HourPicker dentro do modal.
     Atualmente ele está abrindo atrás do modal.
 
@@ -703,4 +701,8 @@ const difficultyFilterOptions = computed(() => [
   - ⁠Mudar  o comportamento quando é mobile em hábitos, checkbox pequeno e fica sem espaço para ficar empilhado
    
   - Remover a identidade da listagem, é um conteúdo grande para ficar exibindo, pode ser usado em notificações, e para entender melhor sobre o hábito.
+
+  - Modal está ocupando mais espaço na altura, sendo que deveria ocupar uma altura máxima,
+    e o conteúdo interno deveria ser scrollável, para evitar que o usuário tenha que lidar com a altura do modal, e focar somente no conteúdo.
+    Tomar cuidado para não quebrar os select e essas coisas que estão dentro do modal, que tem um comportamento diferente, e podem acabar ficando com uma altura fixa, e não se adaptando ao conteúdo.
  -->

@@ -63,9 +63,33 @@ export function getAuthUserCookie(event: H3Event): AuthUserCookiePayload | null 
   if (!raw)
     return null
 
+  const attempts = [raw]
+
   try {
-    return JSON.parse(decodeURIComponent(raw)) as AuthUserCookiePayload
+    const decoded = decodeURIComponent(raw)
+    if (!attempts.includes(decoded))
+      attempts.push(decoded)
   } catch {
-    return null
+    // Ignore malformed URI sequences and try other strategies below.
   }
+
+  try {
+    const decodedTwice = decodeURIComponent(attempts[attempts.length - 1]!)
+    if (!attempts.includes(decodedTwice))
+      attempts.push(decodedTwice)
+  } catch {
+    // Ignore malformed URI sequences and fall back to the successful attempts.
+  }
+
+  for (const attempt of attempts) {
+    try {
+      const parsed = JSON.parse(attempt) as unknown
+      if (parsed && typeof parsed === 'object' && 'user' in parsed)
+        return parsed as AuthUserCookiePayload
+    } catch {
+      // Try the next decoding attempt.
+    }
+  }
+
+  return null
 }
