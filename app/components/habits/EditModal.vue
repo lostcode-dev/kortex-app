@@ -69,6 +69,10 @@ const state = reactive<Partial<Schema>>({
   scheduledEndTime: undefined,
 });
 
+const loading = ref(false);
+const activeFormTab = ref("main");
+const selectedTagIds = ref<string[]>([]);
+
 watch(
   () => props.habit,
   (habit) => {
@@ -90,10 +94,6 @@ watch(
   },
   { immediate: true },
 );
-
-const loading = ref(false);
-const activeFormTab = ref("main");
-const selectedTagIds = ref<string[]>([]);
 
 watch(
   () => props.open,
