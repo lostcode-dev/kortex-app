@@ -10,6 +10,7 @@ useSeoMeta({
 })
 
 const toast = useToast()
+const requestFetch = useRequestFetch()
 
 // ─── Subscription ────────────────────────────────────────
 type Subscription = {
@@ -42,7 +43,7 @@ type BillingStatusResponse = {
 
 const { data, status, refresh } = await useAsyncData(
   'billing-subscription',
-  () => $fetch<BillingStatusResponse>('/api/billing/status')
+  () => requestFetch<BillingStatusResponse>('/api/billing/status')
 )
 
 const isCancelling = ref(false)
@@ -160,7 +161,7 @@ const showInvoices = ref(false)
 
 const { data: invoicesData, status: invoicesStatus, refresh: refreshInvoices } = await useAsyncData(
   () => `billing-invoices-${invoicePage.value}`,
-  () => $fetch<InvoicesResponse>('/api/billing/invoices', { query: { page: invoicePage.value, pageSize: invoicePageSize } }),
+  () => requestFetch<InvoicesResponse>('/api/billing/invoices', { query: { page: invoicePage.value, pageSize: invoicePageSize } }),
   { watch: [invoicePage], lazy: true, immediate: false }
 )
 

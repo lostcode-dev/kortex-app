@@ -8,6 +8,7 @@ useSeoMeta({
 })
 
 const toast = useToast()
+const requestFetch = useRequestFetch()
 
 type NotificationPreferences = {
   channel_email: boolean
@@ -19,7 +20,7 @@ type NotificationPreferences = {
 
 const { data, status } = await useAsyncData(
   'notification-preferences',
-  () => $fetch<NotificationPreferences>('/api/settings/notifications')
+  () => requestFetch<NotificationPreferences>('/api/settings/notifications')
 )
 
 const state = reactive<NotificationPreferences>({

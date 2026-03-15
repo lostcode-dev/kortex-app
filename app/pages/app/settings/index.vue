@@ -12,6 +12,7 @@ useSeoMeta({
 
 const toast = useToast()
 const { fetchUser } = useAuth()
+const requestFetch = useRequestFetch()
 
 type ProfileResponse = {
   id: string
@@ -30,7 +31,7 @@ type ProfileSchema = z.output<typeof profileSchema>
 
 const { data: profileData, status } = await useAsyncData(
   'user-profile',
-  () => $fetch<ProfileResponse>('/api/auth/profile')
+  () => requestFetch<ProfileResponse>('/api/auth/profile')
 )
 
 const profile = reactive<Partial<ProfileSchema>>({
