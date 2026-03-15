@@ -75,6 +75,8 @@ export function useAuth() {
   const nuxtApp = useNuxtApp()
   const userCookie = useCookie<string | null>('sb-user', {
     default: () => null,
+    decode: value => value,
+    encode: value => value ?? '',
     path: '/',
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production'
