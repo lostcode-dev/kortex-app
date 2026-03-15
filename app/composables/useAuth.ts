@@ -95,35 +95,15 @@ export function useAuth() {
   const ready = computed(() => state.value.ready)
   const isAuthenticated = computed(() => Boolean(state.value.user))
 
-  function log(message: string, meta?: Record<string, unknown>) {
-    console.log('[auth/useAuth]', message, {
-      env: import.meta.server ? 'server' : 'client',
-      ...meta
-    })
-  }
-
   function parseUserCookie(): AuthUserCookiePayload | null {
     const raw = userCookie.value
-    if (!raw) {
-      log('parseUserCookie:empty')
+    if (!raw)
       return null
-    }
 
     const parsed = parseAuthUserCookieValue(raw)
-    if (parsed) {
-      log('parseUserCookie:success', {
-        userId: parsed.user?.id ?? null,
-        expiresAt: parsed.expiresAt,
-        syncedAt: parsed.syncedAt
-      })
+    if (parsed)
       return parsed
-    }
 
-    log('parseUserCookie:error', {
-      rawType: typeof raw,
-      rawLength: typeof raw === 'string' ? raw.length : null,
-      rawPreview: typeof raw === 'string' ? raw.slice(0, 80) : null
-    })
     return null
   }
 
@@ -144,18 +124,10 @@ export function useAuth() {
 
   async function fetchUser(): Promise<AuthUser | null> {
     const pendingFetch = pendingFetchMap.get(nuxtApp)
-    if (pendingFetch) {
-      log('fetchUser:reusing-pending-request')
+    if (pendingFetch)
       return pendingFetch
-    }
 
     const request = (async () => {
-      log('fetchUser:start', {
-        hasStateUser: Boolean(state.value.user),
-        hasCookie: Boolean(userCookie.value),
-        hasRequestCookieHeader: Boolean(requestHeaders?.cookie)
-      })
-
       try {
         const response = await requestFetch<{ user: AuthUser | null, session: AuthSession | null }>('/api/auth/me', {
           credentials: 'include',
@@ -169,24 +141,12 @@ export function useAuth() {
 
         state.value.user = response.user
         state.value.ready = true
-        log('fetchUser:success', {
-          hasUser: Boolean(response.user),
-          userId: response.user?.id ?? null,
-          expiresAt: response.session?.expiresAt ?? null
-        })
         return response.user
-      } catch (error: unknown) {
+      } catch {
         state.value.user = state.value.user ?? parseUserCookie()?.user ?? null
         state.value.ready = true
         if (!state.value.user)
           userCookie.value = null
-
-        const err = error as { statusCode?: number, status?: number, message?: string }
-        log('fetchUser:error', {
-          statusCode: err?.statusCode ?? err?.status ?? null,
-          message: err?.message ?? null,
-          fallbackUserId: state.value.user?.id ?? null
-        })
 
         return state.value.user
       } finally {
@@ -204,49 +164,28 @@ export function useAuth() {
       return true
 
     if (!parsed.expiresAt) {
-      const expired = parsed.syncedAt <= Date.now() - AUTH_COOKIE_REVALIDATE_MS
-      log('isTokenExpired:no-expiry', {
-        syncedAt: parsed.syncedAt,
-        expired
-      })
-      return expired
+      return parsed.syncedAt <= Date.now() - AUTH_COOKIE_REVALIDATE_MS
     }
 
-    const expired = parsed.expiresAt * 1000 <= Date.now() + AUTH_REFRESH_BUFFER_MS
-    log('isTokenExpired:with-expiry', {
-      expiresAt: parsed.expiresAt,
-      expired
-    })
-    return expired
+    return parsed.expiresAt * 1000 <= Date.now() + AUTH_REFRESH_BUFFER_MS
   }
 
   async function ensureReady() {
     const pendingEnsure = pendingEnsureMap.get(nuxtApp)
     if (pendingEnsure) {
-      log('ensureReady:reusing-pending-request')
       await pendingEnsure
       return
     }
 
     const request = (async () => {
-      log('ensureReady:start', {
-        ready: state.value.ready,
-        hasStateUser: Boolean(state.value.user),
-        hasCookie: Boolean(userCookie.value)
-      })
-
       if (state.value.ready) {
         if (!state.value.user && userCookie.value) {
-          log('ensureReady:state-cookie-mismatch')
           await fetchUser()
           return
         }
 
         // Even when ready, proactively refresh if token is near expiry
         if (state.value.user && isTokenExpired()) {
-          log('ensureReady:refreshing-ready-state', {
-            userId: state.value.user.id
-          })
           await fetchUser()
         }
         return
@@ -254,11 +193,6 @@ export function useAuth() {
 
       const parsed = parseUserCookie()
       if (parsed) {
-        log('ensureReady:hydrated-from-cookie', {
-          userId: parsed.user.id,
-          expiresAt: parsed.expiresAt,
-          syncedAt: parsed.syncedAt
-        })
         state.value.user = parsed.user
         state.value.ready = true
 
@@ -278,10 +212,6 @@ export function useAuth() {
   }
 
   async function login(payload: { email: string, password: string, remember?: boolean }) {
-    log('login:start', {
-      email: payload.email,
-      remember: payload.remember ?? true
-    })
     const response = await $fetch<{ user: AuthUser, session: AuthSession }>('/api/auth/login', {
       method: 'POST',
       body: payload,
@@ -291,10 +221,6 @@ export function useAuth() {
     setUserCookie(response.user, response.session)
     state.value.user = response.user
     state.value.ready = true
-    log('login:success', {
-      userId: response.user.id,
-      expiresAt: response.session.expiresAt
-    })
     return response.user
   }
 
@@ -317,14 +243,10 @@ export function useAuth() {
   }
 
   async function logout() {
-    log('logout:start', {
-      userId: state.value.user?.id ?? null
-    })
     await $fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     state.value.user = null
     state.value.ready = true
     userCookie.value = null
-    log('logout:success')
   }
 
   return {
