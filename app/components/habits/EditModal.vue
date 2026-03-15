@@ -12,6 +12,9 @@ const formTabItems = [
 ];
 
 const FORM_ID = "habit-edit-form";
+const ALL_WEEK_DAYS = [0, 1, 2, 3, 4, 5, 6];
+const WEEKDAY_ONLY = [1, 2, 3, 4, 5];
+const WEEKEND_ONLY = [0, 6];
 
 const props = defineProps<{
   open: boolean;
@@ -27,7 +30,6 @@ const emit = defineEmits<{
 
 const {
   updateHabit,
-  frequencyOptions,
   difficultyOptions,
   habitTypeOptions,
   dayOptions,
@@ -43,20 +45,13 @@ const schema = z
     attractiveStrategy: z.string().max(RICH_TEXT_MAX_LENGTH).optional(),
     easyStrategy: z.string().max(RICH_TEXT_MAX_LENGTH).optional(),
     satisfyingStrategy: z.string().max(RICH_TEXT_MAX_LENGTH).optional(),
-    frequency: z.nativeEnum(HabitFrequency),
     difficulty: z.nativeEnum(HabitDifficulty),
     habitType: z.nativeEnum(HabitType),
     identityId: z.string().uuid().optional(),
-    customDays: z.array(z.number().int().min(0).max(6)).optional(),
+    customDays: z.array(z.number().int().min(0).max(6)).min(1, "Selecione ao menos um dia"),
     scheduledTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato HH:mm').optional(),
     scheduledEndTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato HH:mm').optional(),
-  })
-  .refine(
-    (data) =>
-      data.frequency !== HabitFrequency.Custom ||
-      (data.customDays && data.customDays.length > 0),
-    { message: "Selecione ao menos um dia", path: ["customDays"] },
-  );
+  });
 
 type Schema = z.output<typeof schema>;
 
@@ -67,11 +62,10 @@ const state = reactive<Partial<Schema>>({
   attractiveStrategy: "",
   easyStrategy: "",
   satisfyingStrategy: "",
-  frequency: HabitFrequency.Daily,
   difficulty: HabitDifficulty.Normal,
   habitType: HabitType.Positive,
   identityId: undefined,
-  customDays: [],
+  customDays: [...ALL_WEEK_DAYS],
   scheduledTime: undefined,
   scheduledEndTime: undefined,
 });
@@ -86,11 +80,10 @@ watch(
       state.attractiveStrategy = habit.attractiveStrategy ?? "";
       state.easyStrategy = habit.easyStrategy ?? "";
       state.satisfyingStrategy = habit.satisfyingStrategy ?? "";
-      state.frequency = habit.frequency;
       state.difficulty = habit.difficulty;
       state.habitType = habit.habitType ?? HabitType.Positive;
       state.identityId = habit.identityId ?? undefined;
-      state.customDays = habit.customDays ?? [];
+      state.customDays = toSelectedDays(habit.frequency, habit.customDays);
       state.scheduledTime = habit.scheduledTime ?? undefined;
       state.scheduledEndTime = habit.scheduledEndTime ?? undefined;
       selectedTagIds.value = (habit.tags ?? []).map(t => t.id);
@@ -128,13 +121,19 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   if (loading.value) return;
   loading.value = true;
   try {
+    const frequencySelection = normalizeFrequencySelection(event.data.customDays);
     const result = await updateHabit(props.habit.id, {
-      ...event.data,
+      name: event.data.name,
       description: normalizeRichText(event.data.description) ?? null,
       obviousStrategy: normalizeRichText(event.data.obviousStrategy) ?? null,
       attractiveStrategy: normalizeRichText(event.data.attractiveStrategy) ?? null,
       easyStrategy: normalizeRichText(event.data.easyStrategy) ?? null,
       satisfyingStrategy: normalizeRichText(event.data.satisfyingStrategy) ?? null,
+      difficulty: event.data.difficulty,
+      habitType: event.data.habitType,
+      identityId: event.data.identityId ?? null,
+      frequency: frequencySelection.frequency,
+      customDays: frequencySelection.customDays,
       scheduledTime: event.data.scheduledTime || null,
       scheduledEndTime: event.data.scheduledEndTime || null,
       tagIds: selectedTagIds.value,
@@ -162,6 +161,56 @@ function toggleDay(day: number) {
     state.customDays.push(day);
   }
 }
+
+function setSelectedDays(days: number[]) {
+  state.customDays = [...days].sort((a, b) => a - b);
+}
+
+function normalizeFrequencySelection(days: number[]) {
+  const uniqueDays = [...new Set(days)].sort((a, b) => a - b);
+
+  if (uniqueDays.length === ALL_WEEK_DAYS.length) {
+    return {
+      frequency: HabitFrequency.Daily,
+      customDays: undefined,
+    };
+  }
+
+  return {
+    frequency: HabitFrequency.Custom,
+    customDays: uniqueDays,
+  };
+}
+
+function toSelectedDays(frequency: HabitFrequency, customDays: number[] | null) {
+  if (frequency === HabitFrequency.Daily) {
+    return [...ALL_WEEK_DAYS];
+  }
+
+  if (frequency === HabitFrequency.Weekly) {
+    return [1];
+  }
+
+  return [...(customDays ?? [])].sort((a, b) => a - b);
+}
+
+const selectedDaysSummary = computed(() => {
+  const selectedDays = state.customDays ?? [];
+
+  if (selectedDays.length === ALL_WEEK_DAYS.length) {
+    return "Todos os dias";
+  }
+
+  if (selectedDays.length === WEEKDAY_ONLY.length && WEEKDAY_ONLY.every((day) => selectedDays.includes(day))) {
+    return "Dias úteis";
+  }
+
+  if (selectedDays.length === WEEKEND_ONLY.length && WEEKEND_ONLY.every((day) => selectedDays.includes(day))) {
+    return "Fim de semana";
+  }
+
+  return selectedDays.map((day) => dayOptions.find((option) => option.value === day)?.label ?? "").filter(Boolean).join(", ");
+});
 
 const identityItems = computed(() => {
   return [
@@ -267,35 +316,59 @@ function getHabitTypeIcon(habitType: HabitType) {
               />
             </UFormField>
 
-            <UFormField label="Frequência" name="frequency">
-              <USelect
-                v-model="state.frequency"
-                :items="frequencyOptions"
-                value-key="value"
-                class="w-full"
-              />
-            </UFormField>
-
             <UFormField
-              v-if="state.frequency === HabitFrequency.Custom"
-              label="Dias da semana"
+              label="Dias do hábito"
               name="customDays"
+              description="Selecione em quais dias esse hábito deve aparecer."
             >
-              <div class="flex flex-wrap gap-2">
-                <UButton
-                  v-for="day in dayOptions"
-                  :key="day.value"
-                  type="button"
-                  :label="day.label"
-                  size="sm"
-                  :color="
-                    state.customDays?.includes(day.value) ? 'primary' : 'neutral'
-                  "
-                  :variant="
-                    state.customDays?.includes(day.value) ? 'solid' : 'outline'
-                  "
-                  @click="toggleDay(day.value)"
-                />
+              <div class="space-y-3">
+                <div class="flex flex-wrap gap-2">
+                  <UButton
+                    type="button"
+                    label="Todos os dias"
+                    size="sm"
+                    color="neutral"
+                    variant="subtle"
+                    @click="setSelectedDays(ALL_WEEK_DAYS)"
+                  />
+                  <UButton
+                    type="button"
+                    label="Dias úteis"
+                    size="sm"
+                    color="neutral"
+                    variant="subtle"
+                    @click="setSelectedDays(WEEKDAY_ONLY)"
+                  />
+                  <UButton
+                    type="button"
+                    label="Fim de semana"
+                    size="sm"
+                    color="neutral"
+                    variant="subtle"
+                    @click="setSelectedDays(WEEKEND_ONLY)"
+                  />
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                  <UButton
+                    v-for="day in dayOptions"
+                    :key="day.value"
+                    type="button"
+                    :label="day.label"
+                    size="sm"
+                    :color="
+                      state.customDays?.includes(day.value) ? 'primary' : 'neutral'
+                    "
+                    :variant="
+                      state.customDays?.includes(day.value) ? 'solid' : 'outline'
+                    "
+                    @click="toggleDay(day.value)"
+                  />
+                </div>
+
+                <p class="text-sm text-muted">
+                  {{ selectedDaysSummary || "Nenhum dia selecionado" }}
+                </p>
               </div>
             </UFormField>
 
