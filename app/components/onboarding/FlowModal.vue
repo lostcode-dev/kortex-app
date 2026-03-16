@@ -34,21 +34,29 @@ const selectedTimezone = ref('UTC')
 const goalOptions = [
   {
     value: 'consistency' as const,
+    emoji: '🔥',
+    icon: 'i-lucide-flame',
     label: 'Criar constância',
     description: 'Quero manter hábitos simples sem perder ritmo.'
   },
   {
     value: 'productivity' as const,
+    emoji: '⚡',
+    icon: 'i-lucide-zap',
     label: 'Organizar rotina',
     description: 'Quero estruturar melhor o meu dia.'
   },
   {
     value: 'wellbeing' as const,
+    emoji: '🧘',
+    icon: 'i-lucide-leaf',
     label: 'Cuidar de mim',
     description: 'Quero melhorar energia, saúde e bem-estar.'
   },
   {
     value: 'identity' as const,
+    emoji: '🧠',
+    icon: 'i-lucide-sparkles',
     label: 'Mudar identidade',
     description: 'Quero reforçar quem eu quero me tornar.'
   }
@@ -57,16 +65,22 @@ const goalOptions = [
 const experienceOptions = [
   {
     value: 'new' as const,
+    emoji: '🌱',
+    icon: 'i-lucide-sprout',
     label: 'Primeira vez',
     description: 'Ainda estou começando a organizar meus hábitos.'
   },
   {
     value: 'returning' as const,
+    emoji: '🔁',
+    icon: 'i-lucide-refresh-cw',
     label: 'Já tentei antes',
     description: 'Preciso voltar a ter consistência.'
   },
   {
     value: 'structured' as const,
+    emoji: '📊',
+    icon: 'i-lucide-chart-column',
     label: 'Já tenho método',
     description: 'Quero um sistema melhor para acompanhar.'
   }
@@ -75,13 +89,44 @@ const experienceOptions = [
 const guidanceOptions = [
   {
     value: 'guided' as const,
+    emoji: '🧭',
+    icon: 'i-lucide-compass',
     label: 'Mais guiado',
     description: 'Prefiro passos mais claros e sugeridos.'
   },
   {
     value: 'flexible' as const,
+    emoji: '🎛️',
+    icon: 'i-lucide-sliders-horizontal',
     label: 'Mais flexível',
     description: 'Prefiro ajustar o sistema do meu jeito.'
+  }
+]
+
+const productTourCards = [
+  {
+    title: 'Hoje',
+    emoji: '☀️',
+    icon: 'i-lucide-sun',
+    description: 'É a operação diária. Você vê o que precisa fazer e registra a execução.'
+  },
+  {
+    title: 'Todos',
+    emoji: '🗂️',
+    icon: 'i-lucide-list-tree',
+    description: 'É a visão completa do sistema de hábitos, com busca, filtros e organização.'
+  },
+  {
+    title: 'Revisão',
+    emoji: '📝',
+    icon: 'i-lucide-notebook-pen',
+    description: 'É onde você aprende com a semana e ajusta o que precisa melhorar.'
+  },
+  {
+    title: 'Insights',
+    emoji: '📈',
+    icon: 'i-lucide-bar-chart-3',
+    description: 'É onde o sistema mostra padrões, consistência e sinais de evolução.'
   }
 ]
 
@@ -123,6 +168,43 @@ const canAdvance = computed(() => {
     && profile.experienceLevel
     && profile.guidanceStyle
   )
+})
+
+const stepPresentation = computed(() => {
+  const map: Record<OnboardingStep, { emoji: string, eyebrow: string, title: string, description: string }> = {
+    welcome: {
+      emoji: '👋',
+      eyebrow: 'Bora começar',
+      title: 'Setup rápido, sem enrolação',
+      description: 'Menos de 2 minutos para te colocar em movimento.'
+    },
+    profile: {
+      emoji: '🎯',
+      eyebrow: 'Seu perfil',
+      title: 'Vamos calibrar isso para o seu momento',
+      description: 'Três escolhas rápidas e o produto já fica mais alinhado.'
+    },
+    minimum_setup: {
+      emoji: '🌍',
+      eyebrow: 'Configuração mínima',
+      title: 'Deixa o básico redondo',
+      description: 'Timezone certo para hábitos, agenda e notificações baterem.'
+    },
+    product_tour: {
+      emoji: '🗺️',
+      eyebrow: 'Mapa rápido',
+      title: 'Entenda a lógica em um minuto',
+      description: 'Criar, executar, revisar e ajustar. Esse é o loop.'
+    },
+    first_action: {
+      emoji: '🚀',
+      eyebrow: 'Primeira ação',
+      title: 'Agora é mão na massa',
+      description: 'A próxima etapa já te leva para criar o primeiro hábito.'
+    }
+  }
+
+  return map[currentStep.value]
 })
 
 function hydrateLocalState() {
@@ -210,57 +292,89 @@ onMounted(async () => {
     :ui="{ content: 'max-w-3xl' }"
   >
     <template #content>
-      <UCard class="border-default/70 bg-elevated/70">
+      <UCard class="overflow-hidden border-default/70 bg-elevated/70">
         <template #header>
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div class="space-y-1">
-              <p class="text-xs font-medium uppercase tracking-[0.24em] text-primary">
-                Onboarding inicial
-              </p>
-              <h2 class="text-xl font-semibold text-highlighted">
-                {{ currentStepIndex + 1 }} de {{ ONBOARDING_STEPS.length }}
-              </h2>
-            </div>
+          <div class="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/20 via-primary/8 to-transparent p-5">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div class="flex items-start gap-4">
+                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-3xl shadow-sm ring-1 ring-white/10">
+                  <span>{{ stepPresentation.emoji }}</span>
+                </div>
 
-            <UBadge color="neutral" variant="subtle" size="lg">
-              Menos de 2 minutos
-            </UBadge>
+                <div class="space-y-1">
+                  <p class="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+                    {{ stepPresentation.eyebrow }}
+                  </p>
+                  <h2 class="text-2xl font-semibold text-highlighted">
+                    {{ stepPresentation.title }}
+                  </h2>
+                  <p class="text-sm text-muted">
+                    {{ stepPresentation.description }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <UBadge color="neutral" variant="subtle" size="lg">
+                  {{ currentStepIndex + 1 }} / {{ ONBOARDING_STEPS.length }}
+                </UBadge>
+
+                <UBadge color="primary" variant="soft" size="lg">
+                  <span class="mr-1">⚡</span>
+                  Menos de 2 min
+                </UBadge>
+              </div>
+            </div>
           </div>
         </template>
 
         <div v-if="currentStep === 'welcome'" class="space-y-6">
-          <div class="space-y-3">
-            <h3 class="text-2xl font-semibold text-highlighted">
-              Boas-vindas{{ user?.user_metadata?.name ? `, ${String(user.user_metadata.name)}` : '' }}
-            </h3>
-            <p class="text-base text-muted">
-              Vamos configurar o essencial para você começar rápido. A ideia é entender seu perfil, ajustar o mínimo necessário e te levar direto para a criação do primeiro hábito.
-            </p>
+          <div class="rounded-2xl border border-primary/15 bg-primary/5 p-5">
+            <div class="space-y-3">
+              <p class="text-sm font-medium text-primary">
+                {{ user?.user_metadata?.name ? `Boa, ${String(user.user_metadata.name)}.` : 'Boa.' }}
+              </p>
+              <h3 class="text-2xl font-semibold text-highlighted">
+                Você está a poucos cliques do primeiro hábito
+              </h3>
+              <p class="text-base text-muted">
+                A ideia aqui é simples: entender seu momento, acertar o essencial e te jogar direto para a prática.
+              </p>
+            </div>
           </div>
 
           <div class="grid gap-3 md:grid-cols-3">
-            <UCard>
-              <p class="text-sm font-medium text-highlighted">
-                Perfil
-              </p>
+            <UCard class="border-primary/10 bg-primary/5">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">🎯</span>
+                <p class="text-sm font-medium text-highlighted">
+                  Perfil
+                </p>
+              </div>
               <p class="mt-2 text-sm text-muted">
                 Entender o seu objetivo principal e o nível de orientação ideal.
               </p>
             </UCard>
 
-            <UCard>
-              <p class="text-sm font-medium text-highlighted">
-                Configuração mínima
-              </p>
+            <UCard class="border-primary/10 bg-primary/5">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">🌍</span>
+                <p class="text-sm font-medium text-highlighted">
+                  Configuração mínima
+                </p>
+              </div>
               <p class="mt-2 text-sm text-muted">
                 Ajustar timezone para agenda, hábitos e notificações funcionarem certo.
               </p>
             </UCard>
 
-            <UCard>
-              <p class="text-sm font-medium text-highlighted">
-                Primeira ação
-              </p>
+            <UCard class="border-primary/10 bg-primary/5">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">🚀</span>
+                <p class="text-sm font-medium text-highlighted">
+                  Primeira ação
+                </p>
+              </div>
               <p class="mt-2 text-sm text-muted">
                 Ir para Hábitos e começar com um fluxo guiado de criação.
               </p>
@@ -292,9 +406,15 @@ onMounted(async () => {
                   :class="profile.primaryGoal === option.value ? 'border-primary bg-primary/10' : 'border-default hover:border-primary/60'"
                   @click="profile.primaryGoal = option.value"
                 >
-                  <p class="font-medium text-highlighted">
-                    {{ option.label }}
-                  </p>
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl">{{ option.emoji }}</span>
+                    <div>
+                      <p class="font-medium text-highlighted">
+                        {{ option.label }}
+                      </p>
+                      <UIcon :name="option.icon" class="mt-1 text-base text-primary" />
+                    </div>
+                  </div>
                   <p class="mt-1 text-sm text-muted">
                     {{ option.description }}
                   </p>
@@ -315,9 +435,15 @@ onMounted(async () => {
                   :class="profile.experienceLevel === option.value ? 'border-primary bg-primary/10' : 'border-default hover:border-primary/60'"
                   @click="profile.experienceLevel = option.value"
                 >
-                  <p class="font-medium text-highlighted">
-                    {{ option.label }}
-                  </p>
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl">{{ option.emoji }}</span>
+                    <div>
+                      <p class="font-medium text-highlighted">
+                        {{ option.label }}
+                      </p>
+                      <UIcon :name="option.icon" class="mt-1 text-base text-primary" />
+                    </div>
+                  </div>
                   <p class="mt-1 text-sm text-muted">
                     {{ option.description }}
                   </p>
@@ -338,9 +464,15 @@ onMounted(async () => {
                   :class="profile.guidanceStyle === option.value ? 'border-primary bg-primary/10' : 'border-default hover:border-primary/60'"
                   @click="profile.guidanceStyle = option.value"
                 >
-                  <p class="font-medium text-highlighted">
-                    {{ option.label }}
-                  </p>
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl">{{ option.emoji }}</span>
+                    <div>
+                      <p class="font-medium text-highlighted">
+                        {{ option.label }}
+                      </p>
+                      <UIcon :name="option.icon" class="mt-1 text-base text-primary" />
+                    </div>
+                  </div>
                   <p class="mt-1 text-sm text-muted">
                     {{ option.description }}
                   </p>
@@ -374,9 +506,12 @@ onMounted(async () => {
           </UFormField>
 
           <UCard>
-            <p class="text-sm text-muted">
-              Se quiser, isso pode ser alterado depois em <strong>Configurações</strong>.
-            </p>
+            <div class="flex items-start gap-3">
+              <span class="text-2xl">🕒</span>
+              <p class="text-sm text-muted">
+                Se quiser, isso pode ser alterado depois em <strong>Configurações</strong>.
+              </p>
+            </div>
           </UCard>
         </div>
 
@@ -391,39 +526,22 @@ onMounted(async () => {
           </div>
 
           <div class="grid gap-3 md:grid-cols-2">
-            <UCard>
-              <p class="font-medium text-highlighted">
-                Hoje
-              </p>
-              <p class="mt-2 text-sm text-muted">
-                É a operação diária. Você vê o que precisa fazer e registra a execução.
-              </p>
-            </UCard>
-
-            <UCard>
-              <p class="font-medium text-highlighted">
-                Todos
-              </p>
-              <p class="mt-2 text-sm text-muted">
-                É a visão completa do sistema de hábitos, com busca, filtros e organização.
-              </p>
-            </UCard>
-
-            <UCard>
-              <p class="font-medium text-highlighted">
-                Revisão
-              </p>
-              <p class="mt-2 text-sm text-muted">
-                É onde você aprende com a semana e ajusta o que precisa melhorar.
-              </p>
-            </UCard>
-
-            <UCard>
-              <p class="font-medium text-highlighted">
-                Insights
-              </p>
-              <p class="mt-2 text-sm text-muted">
-                É onde o sistema mostra padrões, consistência e sinais de evolução.
+            <UCard
+              v-for="card in productTourCards"
+              :key="card.title"
+              class="border-primary/10 bg-primary/5"
+            >
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">{{ card.emoji }}</span>
+                <div>
+                  <p class="font-medium text-highlighted">
+                    {{ card.title }}
+                  </p>
+                  <UIcon :name="card.icon" class="mt-1 text-base text-primary" />
+                </div>
+              </div>
+              <p class="mt-3 text-sm text-muted">
+                {{ card.description }}
               </p>
             </UCard>
           </div>
@@ -439,11 +557,20 @@ onMounted(async () => {
             </p>
           </div>
 
-          <UCard>
+          <UCard class="border-primary/10 bg-primary/5">
             <div class="space-y-3 text-sm text-muted">
-              <p>1. Abrir a tela de Hábitos.</p>
-              <p>2. Destacar o botão de criação do primeiro hábito.</p>
-              <p>3. Guiar você dentro do formulário para preencher os campos principais.</p>
+              <div class="flex items-center gap-3">
+                <span class="text-xl">1️⃣</span>
+                <p>Abrir a tela de Hábitos.</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-xl">2️⃣</span>
+                <p>Destacar o botão de criação do primeiro hábito.</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-xl">3️⃣</span>
+                <p>Guiar você dentro do formulário para preencher os campos principais.</p>
+              </div>
             </div>
           </UCard>
         </div>
@@ -454,9 +581,9 @@ onMounted(async () => {
               color="neutral"
               variant="ghost"
               label="Continuar depois"
+              icon="i-lucide-coffee"
               @click="onContinueLater"
             />
-
             <div class="flex items-center justify-end gap-2">
               <UButton
                 v-if="!isFirstStep"
