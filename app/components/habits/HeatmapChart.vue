@@ -25,26 +25,61 @@ interface CellData {
   y: number
   day: HeatmapDay
   color: string
+  isFuture: boolean
 }
 
-const heatmapCells = computed<CellData[]>(() => {
+const normalizedDays = computed<HeatmapDay[]>(() => {
   if (!props.days.length) return []
 
-  const cells: CellData[] = []
-  const firstDate = new Date(props.days[0]!.date + 'T12:00:00')
-  const firstDayOfWeek = firstDate.getDay() // 0=Sun
+  const days = [...props.days]
+  const firstDate = new Date(`${days[0]!.date}T12:00:00`)
+  const selectedYear = firstDate.getFullYear()
+  const now = new Date()
+  const currentYear = now.getFullYear()
 
-  for (let i = 0; i < props.days.length; i++) {
-    const day = props.days[i]!
+  if (selectedYear !== currentYear) return days
+
+  const lastDate = new Date(`${days[days.length - 1]!.date}T12:00:00`)
+  const endOfYear = new Date(currentYear, 11, 31, 12, 0, 0)
+  const cursor = new Date(lastDate)
+  cursor.setDate(cursor.getDate() + 1)
+
+  while (cursor <= endOfYear) {
+    days.push({
+      date: cursor.toISOString().split('T')[0]!,
+      count: 0,
+      total: 0,
+      level: 0,
+    })
+    cursor.setDate(cursor.getDate() + 1)
+  }
+
+  return days
+})
+
+const heatmapCells = computed<CellData[]>(() => {
+  if (!normalizedDays.value.length) return []
+
+  const cells: CellData[] = []
+  const firstDate = new Date(normalizedDays.value[0]!.date + 'T12:00:00')
+  const firstDayOfWeek = firstDate.getDay() // 0=Sun
+  const today = new Date()
+  today.setHours(12, 0, 0, 0)
+
+  for (let i = 0; i < normalizedDays.value.length; i++) {
+    const day = normalizedDays.value[i]!
     const dayIndex = i + firstDayOfWeek
     const col = Math.floor(dayIndex / 7)
     const row = dayIndex % 7
+    const dayDate = new Date(`${day.date}T12:00:00`)
+    const isFuture = dayDate > today
 
     cells.push({
       x: col * TOTAL,
       y: row * TOTAL,
       day,
-      color: LEVEL_COLORS[day.level] ?? LEVEL_COLORS[0]!
+      color: LEVEL_COLORS[day.level] ?? LEVEL_COLORS[0]!,
+      isFuture,
     })
   }
 
@@ -52,15 +87,15 @@ const heatmapCells = computed<CellData[]>(() => {
 })
 
 const monthLabels = computed(() => {
-  if (!props.days.length) return []
+  if (!normalizedDays.value.length) return []
 
   const labels: Array<{ label: string, x: number }> = []
   let lastMonth = -1
-  const firstDate = new Date(props.days[0]!.date + 'T12:00:00')
+  const firstDate = new Date(normalizedDays.value[0]!.date + 'T12:00:00')
   const firstDayOfWeek = firstDate.getDay()
 
-  for (let i = 0; i < props.days.length; i++) {
-    const date = new Date(props.days[i]!.date + 'T12:00:00')
+  for (let i = 0; i < normalizedDays.value.length; i++) {
+    const date = new Date(normalizedDays.value[i]!.date + 'T12:00:00')
     const month = date.getMonth()
     if (month !== lastMonth) {
       const dayIndex = i + firstDayOfWeek
@@ -96,6 +131,11 @@ function onCellLeave() {
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr + 'T12:00:00')
   return date.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
+function formatTooltipCount(cell: CellData): string {
+  if (cell.isFuture) return 'Dia futuro'
+  return `${cell.day.count} concluídos`
 }
 </script>
 
@@ -136,7 +176,8 @@ function formatDate(dateStr: string): string {
             :height="CELL_SIZE"
             :fill="cell.color"
             rx="3"
-            class="cursor-pointer transition-opacity hover:opacity-80"
+            :class="cell.isFuture ? 'cursor-default opacity-35 hover:opacity-35' : 'cursor-pointer hover:opacity-80'"
+            class="transition-opacity"
             @mouseenter="onCellHover(cell, $event)"
             @mouseleave="onCellLeave"
           />
@@ -166,7 +207,7 @@ function formatDate(dateStr: string): string {
           top: tooltipPos.y - 40 + 'px'
         }"
       >
-        <p class="font-medium text-highlighted">{{ tooltipCell.day.count }} concluídos</p>
+        <p class="font-medium text-highlighted">{{ formatTooltipCount(tooltipCell) }}</p>
         <p class="text-xs text-muted">{{ formatDate(tooltipCell.day.date) }}</p>
       </div>
     </Teleport>

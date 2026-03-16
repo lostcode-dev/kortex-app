@@ -186,7 +186,7 @@ function navigateHeatmapYear(direction: 'older' | 'newer') {
 
 <template>
   <div class="space-y-5 lg:space-y-6">
-    <div class="grid gap-4 xl:items-start xl:grid-cols-[minmax(0,1.75fr)_minmax(300px,0.95fr)]">
+    <div class="grid gap-4 ">
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <template v-if="loading">
           <UCard v-for="i in 6" :key="i" class="min-h-28">
@@ -313,11 +313,9 @@ function navigateHeatmapYear(direction: 'older' | 'newer') {
               </div>
             </div>
 
-            <div
-              v-if="availableHeatmapYears.length > 1"
-              class="flex items-center gap-2 self-end sm:self-auto"
-            >
+            <div class="flex items-center gap-2 self-end sm:self-auto">
               <UButton
+                v-if="availableHeatmapYears.length > 1"
                 icon="i-lucide-chevron-left"
                 color="neutral"
                 variant="subtle"
@@ -330,6 +328,7 @@ function navigateHeatmapYear(direction: 'older' | 'newer') {
                 {{ selectedHeatmapYear }}
               </div>
               <UButton
+                v-if="availableHeatmapYears.length > 1"
                 icon="i-lucide-chevron-right"
                 color="neutral"
                 variant="subtle"
