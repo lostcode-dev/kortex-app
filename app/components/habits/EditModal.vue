@@ -8,7 +8,6 @@ import { HabitFrequency, HabitDifficulty, HabitType } from '~/types/habits'
 const RICH_TEXT_MAX_LENGTH = 10000
 
 const formSectionItems = [
-  { label: 'Principal', value: 'main', slot: 'main', icon: 'i-lucide-clipboard-list' },
   { label: 'Agendamento', value: 'schedule', slot: 'schedule', icon: 'i-lucide-clock-3' },
   { label: '4 leis', value: 'strategy', slot: 'strategy', icon: 'i-lucide-layers-3' }
 ]
@@ -80,7 +79,7 @@ const state = reactive<Partial<Schema>>({
 })
 
 const loading = ref(false)
-const activeFormTab = ref('main')
+const activeFormTab = ref('schedule')
 const selectedTagIds = ref<string[]>([])
 
 watch(
@@ -123,7 +122,7 @@ watch(
       }
     }
 
-    if (!open) activeFormTab.value = 'main'
+    if (!open) activeFormTab.value = 'schedule'
   }
 )
 
@@ -191,7 +190,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 }
 
 function onClose() {
-  activeFormTab.value = 'main'
+  activeFormTab.value = 'schedule'
   emit('update:open', false)
 }
 
@@ -297,103 +296,102 @@ function getHabitTypeIcon(habitType: HabitType) {
         class="space-y-4"
         @submit="onSubmit"
       >
+        <div class="space-y-4">
+          <UFormField label="Nome" name="name">
+            <UInput v-model="state.name" class="w-full" />
+          </UFormField>
+
+          <UFormField label="Descrição" name="description">
+            <RichTextEditor
+              v-model="state.description"
+              placeholder="Por que esse hábito é importante?"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField
+            label="Dias do hábito"
+            name="customDays"
+          >
+            <div class="space-y-3">
+              <div class="flex flex-wrap gap-2">
+                <UButton
+                  v-for="day in dayOptions"
+                  :key="day.value"
+                  type="button"
+                  :label="day.label"
+                  size="sm"
+                  :color="
+                    state.customDays?.includes(day.value) ? 'primary' : 'neutral'
+                  "
+                  :variant="
+                    state.customDays?.includes(day.value) ? 'solid' : 'outline'
+                  "
+                  @click="toggleDay(day.value)"
+                />
+              </div>
+            </div>
+          </UFormField>
+
+          <div class="space-y-4">
+            <UFormField label="Dificuldade" name="difficulty">
+              <div class="flex flex-wrap gap-2">
+                <UButton
+                  v-for="opt in difficultyOptions"
+                  :key="opt.value"
+                  type="button"
+                  :label="opt.label"
+                  size="sm"
+                  :icon="getHabitDifficultyIcon(opt.value)"
+                  :color="state.difficulty === opt.value ? 'primary' : 'neutral'"
+                  :variant="state.difficulty === opt.value ? 'solid' : 'outline'"
+                  @click="state.difficulty = opt.value"
+                />
+              </div>
+            </UFormField>
+
+            <UFormField label="Tipo" name="habitType">
+              <div class="flex flex-wrap gap-2">
+                <UButton
+                  v-for="opt in habitTypeOptions"
+                  :key="opt.value"
+                  type="button"
+                  :label="opt.label"
+                  :icon="getHabitTypeIcon(opt.value)"
+                  size="sm"
+                  :color="state.habitType === opt.value ? (opt.value === HabitType.Positive ? 'success' : 'error') : 'neutral'"
+                  :variant="state.habitType === opt.value ? 'solid' : 'outline'"
+                  @click="state.habitType = opt.value"
+                />
+              </div>
+            </UFormField>
+          </div>
+
+          <UFormField label="Tags" name="tags">
+            <USelectMenu
+              v-model="selectedTagIds"
+              :items="(tags ?? []).map(t => ({ label: t.name, value: t.id }))"
+              value-key="value"
+              placeholder="Selecione tags..."
+              multiple
+              class="w-full"
+            />
+          </UFormField>
+        </div>
+
         <UAccordion
           v-model="activeFormTab"
           :items="formSectionItems"
           class="w-full"
           :unmount-on-hide="false"
           :ui="{
+            root: 'space-y-4',
             item: 'rounded-lg border border-default bg-default/40',
             trigger: 'gap-3 rounded-lg px-4 py-3 text-sm font-medium text-highlighted hover:bg-elevated/60',
-            content: 'px-4 pb-4',
-            body: 'pt-2'
+            content: 'px-4 pb-0',
+            body: 'pt-2 pb-4'
           }"
         >
-          <template #main-body>
-            <div class="space-y-4">
-              <UFormField label="Nome" name="name">
-                <UInput v-model="state.name" class="w-full" />
-              </UFormField>
-
-              <UFormField label="Descrição" name="description">
-                <RichTextEditor
-                  v-model="state.description"
-                  placeholder="Por que esse hábito é importante?"
-                  class="w-full"
-                />
-              </UFormField>
-
-              <UFormField
-                label="Dias do hábito"
-                name="customDays"
-              >
-                <div class="space-y-3">
-                  <div class="flex flex-wrap gap-2">
-                    <UButton
-                      v-for="day in dayOptions"
-                      :key="day.value"
-                      type="button"
-                      :label="day.label"
-                      size="sm"
-                      :color="
-                        state.customDays?.includes(day.value) ? 'primary' : 'neutral'
-                      "
-                      :variant="
-                        state.customDays?.includes(day.value) ? 'solid' : 'outline'
-                      "
-                      @click="toggleDay(day.value)"
-                    />
-                  </div>
-                </div>
-              </UFormField>
-
-              <div class="space-y-4">
-                <UFormField label="Dificuldade" name="difficulty">
-                  <div class="flex flex-wrap gap-2">
-                    <UButton
-                      v-for="opt in difficultyOptions"
-                      :key="opt.value"
-                      type="button"
-                      :label="opt.label"
-                      size="sm"
-                      :icon="getHabitDifficultyIcon(opt.value)"
-                      :color="state.difficulty === opt.value ? 'primary' : 'neutral'"
-                      :variant="state.difficulty === opt.value ? 'solid' : 'outline'"
-                      @click="state.difficulty = opt.value"
-                    />
-                  </div>
-                </UFormField>
-
-                <UFormField label="Tipo" name="habitType">
-                  <div class="flex flex-wrap gap-2">
-                    <UButton
-                      v-for="opt in habitTypeOptions"
-                      :key="opt.value"
-                      type="button"
-                      :label="opt.label"
-                      :icon="getHabitTypeIcon(opt.value)"
-                      size="sm"
-                      :color="state.habitType === opt.value ? (opt.value === HabitType.Positive ? 'success' : 'error') : 'neutral'"
-                      :variant="state.habitType === opt.value ? 'solid' : 'outline'"
-                      @click="state.habitType = opt.value"
-                    />
-                  </div>
-                </UFormField>
-              </div>
-
-              <UFormField label="Tags" name="tags">
-                <USelectMenu
-                  v-model="selectedTagIds"
-                  :items="(tags ?? []).map(t => ({ label: t.name, value: t.id }))"
-                  value-key="value"
-                  placeholder="Selecione tags..."
-                  multiple
-                  class="w-full"
-                />
-              </UFormField>
-            </div>
-          </template>
-
           <template #schedule-body>
             <div class="space-y-5">
               <UCard>

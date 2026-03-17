@@ -10,12 +10,6 @@ const RICH_TEXT_MAX_LENGTH = 10000
 
 const formSectionItems = [
   {
-    label: 'Principal',
-    value: 'main',
-    slot: 'main',
-    icon: 'i-lucide-clipboard-list'
-  },
-  {
     label: 'Agendamento',
     value: 'schedule',
     slot: 'schedule',
@@ -53,29 +47,32 @@ const {
   tagsStatus,
   refreshTags
 } = useHabits()
-const {
-  calendars,
-  calendarsStatus,
-  refreshCalendars
-} = useAppointments()
+const { calendars, calendarsStatus, refreshCalendars } = useAppointments()
 const { startIfNeeded } = useGuidedTour()
 
-const schema = z
-  .object({
-    name: z.string().min(1, 'Nome é obrigatório').max(200),
-    description: z.string().max(RICH_TEXT_MAX_LENGTH).optional(),
-    obviousStrategy: z.string().max(RICH_TEXT_MAX_LENGTH).optional(),
-    attractiveStrategy: z.string().max(RICH_TEXT_MAX_LENGTH).optional(),
-    easyStrategy: z.string().max(RICH_TEXT_MAX_LENGTH).optional(),
-    satisfyingStrategy: z.string().max(RICH_TEXT_MAX_LENGTH).optional(),
-    difficulty: z.nativeEnum(HabitDifficulty).default(HabitDifficulty.Normal),
-    habitType: z.nativeEnum(HabitType).default(HabitType.Positive),
-    identityId: z.string().uuid().optional(),
-    calendarId: z.string().uuid().optional(),
-    customDays: z.array(z.number().int().min(0).max(6)).min(1, 'Selecione ao menos um dia'),
-    scheduledTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato HH:mm').optional(),
-    scheduledEndTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato HH:mm').optional()
-  })
+const schema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório').max(200),
+  description: z.string().max(RICH_TEXT_MAX_LENGTH).optional(),
+  obviousStrategy: z.string().max(RICH_TEXT_MAX_LENGTH).optional(),
+  attractiveStrategy: z.string().max(RICH_TEXT_MAX_LENGTH).optional(),
+  easyStrategy: z.string().max(RICH_TEXT_MAX_LENGTH).optional(),
+  satisfyingStrategy: z.string().max(RICH_TEXT_MAX_LENGTH).optional(),
+  difficulty: z.nativeEnum(HabitDifficulty).default(HabitDifficulty.Normal),
+  habitType: z.nativeEnum(HabitType).default(HabitType.Positive),
+  identityId: z.string().uuid().optional(),
+  calendarId: z.string().uuid().optional(),
+  customDays: z
+    .array(z.number().int().min(0).max(6))
+    .min(1, 'Selecione ao menos um dia'),
+  scheduledTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/, 'Formato HH:mm')
+    .optional(),
+  scheduledEndTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/, 'Formato HH:mm')
+    .optional()
+})
 
 type Schema = z.output<typeof schema>
 
@@ -96,7 +93,7 @@ const state = reactive<Partial<Schema>>({
 })
 
 const loading = ref(false)
-const activeFormTab = ref('main')
+const activeFormTab = ref('schedule')
 const selectedTagIds = ref<string[]>([])
 let createHabitTour: Driver | null = null
 
@@ -121,7 +118,7 @@ watch(
           key: GuidedTourKey.HabitsFirstHabitCreate,
           onDestroyed: () => {
             createHabitTour = null
-            activeFormTab.value = 'main'
+            activeFormTab.value = 'schedule'
           },
           steps: buildCreateHabitTourSteps()
         })
@@ -131,7 +128,7 @@ watch(
     if (!open) {
       createHabitTour?.destroy()
       createHabitTour = null
-      activeFormTab.value = 'main'
+      activeFormTab.value = 'schedule'
     }
   }
 )
@@ -149,10 +146,10 @@ const identityIdModel = computed<string | undefined>({
 const calendarItems = computed(() => {
   return [
     { label: 'Automático', value: AUTO_CALENDAR_VALUE },
-    ...((calendars.value ?? []).map((calendar: Calendar) => ({
+    ...(calendars.value ?? []).map((calendar: Calendar) => ({
       label: calendar.name,
       value: calendar.id
-    })))
+    }))
   ]
 })
 
@@ -172,7 +169,9 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   if (loading.value) return
   loading.value = true
   try {
-    const frequencySelection = normalizeFrequencySelection(event.data.customDays)
+    const frequencySelection = normalizeFrequencySelection(
+      event.data.customDays
+    )
     const result = await createHabit({
       description: normalizeRichText(event.data.description),
       obviousStrategy: normalizeRichText(event.data.obviousStrategy),
@@ -188,7 +187,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       customDays: frequencySelection.customDays,
       scheduledTime: event.data.scheduledTime || undefined,
       scheduledEndTime: event.data.scheduledEndTime || undefined,
-      tagIds: selectedTagIds.value.length > 0 ? selectedTagIds.value : undefined
+      tagIds:
+        selectedTagIds.value.length > 0 ? selectedTagIds.value : undefined
     })
     if (result) {
       resetForm()
@@ -214,13 +214,13 @@ function resetForm() {
   state.scheduledTime = undefined
   state.scheduledEndTime = undefined
   selectedTagIds.value = []
-  activeFormTab.value = 'main'
+  activeFormTab.value = 'schedule'
 }
 
 function onClose() {
   createHabitTour?.destroy()
   createHabitTour = null
-  activeFormTab.value = 'main'
+  activeFormTab.value = 'schedule'
   emit('update:open', false)
 }
 
@@ -261,7 +261,9 @@ watch(
   identities,
   (items) => {
     if (!state.identityId) return
-    const exists = (items ?? []).some(identity => identity.id === state.identityId)
+    const exists = (items ?? []).some(
+      identity => identity.id === state.identityId
+    )
     if (!exists) {
       state.identityId = undefined
     }
@@ -293,13 +295,13 @@ function getHabitTypeIcon(habitType: HabitType) {
   }
 }
 
-function getVisibleElement(
-  selectors: string | string[]
-): HTMLElement | null {
+function getVisibleElement(selectors: string | string[]): HTMLElement | null {
   const selectorList = Array.isArray(selectors) ? selectors : [selectors]
 
   for (const selector of selectorList) {
-    const elements = Array.from(document.querySelectorAll<HTMLElement>(selector))
+    const elements = Array.from(
+      document.querySelectorAll<HTMLElement>(selector)
+    )
     const visible = elements.find(element => element.offsetParent !== null)
 
     if (visible) {
@@ -311,26 +313,27 @@ function getVisibleElement(
 }
 
 function getCreateFormSectionElement(value: string): HTMLElement | null {
-  const sectionsRoot = document.querySelector('[data-tour="habit-create-sections"]')
+  const sectionsRoot = document.querySelector(
+    '[data-tour="habit-create-sections"]'
+  )
   if (!sectionsRoot) {
     return null
   }
 
   const sectionLabels: Record<string, string> = {
-    main: 'Principal',
     schedule: 'Agendamento',
     strategy: '4 leis'
   }
 
   return (
-    Array.from(sectionsRoot.querySelectorAll<HTMLElement>('[data-slot="trigger"]')).find(
-      (trigger) => {
-        const triggerValue = trigger.getAttribute('data-value')
-        const triggerText = trigger.textContent?.trim()
+    Array.from(
+      sectionsRoot.querySelectorAll<HTMLElement>('[data-slot="trigger"]')
+    ).find((trigger) => {
+      const triggerValue = trigger.getAttribute('data-value')
+      const triggerText = trigger.textContent?.trim()
 
-        return triggerValue === value || triggerText === sectionLabels[value]
-      }
-    ) ?? null
+      return triggerValue === value || triggerText === sectionLabels[value]
+    }) ?? null
   )
 }
 
@@ -382,7 +385,6 @@ function buildCreateHabitTourSteps(): DriveStep[] {
           driver.moveNext()
         },
         onPrevClick: async (_element, _step, { driver }) => {
-          await focusCreateFormSection('main')
           driver.movePrevious()
         }
       }
@@ -429,8 +431,7 @@ function buildCreateHabitTourSteps(): DriveStep[] {
       }
     },
     {
-      element: () =>
-        getVisibleElement('[data-tour="habit-create-submit"]'),
+      element: () => getVisibleElement('[data-tour="habit-create-submit"]'),
       popover: {
         title: 'Salve para começar a acompanhar',
         description:
@@ -471,6 +472,107 @@ onBeforeUnmount(() => {
         class="space-y-4"
         @submit="onSubmit"
       >
+        <div class="space-y-4">
+          <UFormField label="Nome" name="name">
+            <UInput
+              v-model="state.name"
+              data-tour="habit-create-name"
+              placeholder="Ex: Ler 10 páginas"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="Descrição" name="description">
+            <RichTextEditor
+              v-model="state.description"
+              placeholder="Por que esse hábito é importante?"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField
+            label="Dias do hábito"
+            name="customDays"
+            data-tour="habit-create-days"
+          >
+            <div class="space-y-3">
+              <div class="flex flex-wrap gap-2">
+                <UButton
+                  v-for="day in dayOptions"
+                  :key="day.value"
+                  type="button"
+                  :label="day.label"
+                  size="sm"
+                  :color="
+                    state.customDays?.includes(day.value)
+                      ? 'primary'
+                      : 'neutral'
+                  "
+                  :variant="
+                    state.customDays?.includes(day.value) ? 'solid' : 'outline'
+                  "
+                  @click="toggleDay(day.value)"
+                />
+              </div>
+            </div>
+          </UFormField>
+
+          <div class="space-y-4 grid gap-4 lg:grid-cols-2">
+            <UFormField label="Dificuldade" name="difficulty">
+              <div class="flex flex-wrap gap-2">
+                <UButton
+                  v-for="opt in difficultyOptions"
+                  :key="opt.value"
+                  type="button"
+                  :label="opt.label"
+                  :icon="getHabitDifficultyIcon(opt.value)"
+                  size="sm"
+                  :color="
+                    state.difficulty === opt.value ? 'primary' : 'neutral'
+                  "
+                  :variant="
+                    state.difficulty === opt.value ? 'solid' : 'outline'
+                  "
+                  @click="state.difficulty = opt.value"
+                />
+              </div>
+            </UFormField>
+
+            <UFormField label="Tipo" name="habitType">
+              <div class="flex flex-wrap gap-2">
+                <UButton
+                  v-for="opt in habitTypeOptions"
+                  :key="opt.value"
+                  type="button"
+                  :label="opt.label"
+                  :icon="getHabitTypeIcon(opt.value)"
+                  size="sm"
+                  :color="
+                    state.habitType === opt.value
+                      ? opt.value === HabitType.Positive
+                        ? 'success'
+                        : 'error'
+                      : 'neutral'
+                  "
+                  :variant="state.habitType === opt.value ? 'solid' : 'outline'"
+                  @click="state.habitType = opt.value"
+                />
+              </div>
+            </UFormField>
+          </div>
+
+          <UFormField label="Tags" name="tags">
+            <USelectMenu
+              v-model="selectedTagIds"
+              :items="(tags ?? []).map((t) => ({ label: t.name, value: t.id }))"
+              value-key="value"
+              placeholder="Selecione tags..."
+              multiple
+              class="w-full"
+            />
+          </UFormField>
+        </div>
+
         <UAccordion
           v-model="activeFormTab"
           :items="formSectionItems"
@@ -478,103 +580,14 @@ onBeforeUnmount(() => {
           data-tour="habit-create-sections"
           :unmount-on-hide="false"
           :ui="{
+            root: 'space-y-4',
             item: 'rounded-lg border border-default bg-default/40',
-            trigger: 'gap-3 rounded-lg px-4 py-3 text-sm font-medium text-highlighted hover:bg-elevated/60',
-            content: 'px-4 pb-4',
-            body: 'pt-2'
+            trigger:
+              'gap-3 rounded-lg px-4 py-3 text-sm font-medium text-highlighted hover:bg-elevated/60',
+            content: 'px-4 pb-0',
+            body: 'pt-2 pb-4'
           }"
         >
-          <template #main-body>
-            <div class="space-y-4">
-              <UFormField label="Nome" name="name">
-                <UInput
-                  v-model="state.name"
-                  data-tour="habit-create-name"
-                  placeholder="Ex: Ler 10 páginas"
-                  class="w-full"
-                />
-              </UFormField>
-
-              <UFormField label="Descrição" name="description">
-                <RichTextEditor
-                  v-model="state.description"
-                  placeholder="Por que esse hábito é importante?"
-                  class="w-full"
-                />
-              </UFormField>
-
-              <UFormField
-                label="Dias do hábito"
-                name="customDays"
-                data-tour="habit-create-days"
-              >
-                <div class="space-y-3">
-                  <div class="flex flex-wrap gap-2">
-                    <UButton
-                      v-for="day in dayOptions"
-                      :key="day.value"
-                      type="button"
-                      :label="day.label"
-                      size="sm"
-                      :color="
-                        state.customDays?.includes(day.value) ? 'primary' : 'neutral'
-                      "
-                      :variant="
-                        state.customDays?.includes(day.value) ? 'solid' : 'outline'
-                      "
-                      @click="toggleDay(day.value)"
-                    />
-                  </div>
-                </div>
-              </UFormField>
-
-              <div class="space-y-4 grid gap-4 lg:grid-cols-2">
-                <UFormField label="Dificuldade" name="difficulty">
-                  <div class="flex flex-wrap gap-2">
-                    <UButton
-                      v-for="opt in difficultyOptions"
-                      :key="opt.value"
-                      type="button"
-                      :label="opt.label"
-                      :icon="getHabitDifficultyIcon(opt.value)"
-                      size="sm"
-                      :color="state.difficulty === opt.value ? 'primary' : 'neutral'"
-                      :variant="state.difficulty === opt.value ? 'solid' : 'outline'"
-                      @click="state.difficulty = opt.value"
-                    />
-                  </div>
-                </UFormField>
-
-                <UFormField label="Tipo" name="habitType">
-                  <div class="flex flex-wrap gap-2">
-                    <UButton
-                      v-for="opt in habitTypeOptions"
-                      :key="opt.value"
-                      type="button"
-                      :label="opt.label"
-                      :icon="getHabitTypeIcon(opt.value)"
-                      size="sm"
-                      :color="state.habitType === opt.value ? (opt.value === HabitType.Positive ? 'success' : 'error') : 'neutral'"
-                      :variant="state.habitType === opt.value ? 'solid' : 'outline'"
-                      @click="state.habitType = opt.value"
-                    />
-                  </div>
-                </UFormField>
-              </div>
-
-              <UFormField label="Tags" name="tags">
-                <USelectMenu
-                  v-model="selectedTagIds"
-                  :items="(tags ?? []).map(t => ({ label: t.name, value: t.id }))"
-                  value-key="value"
-                  placeholder="Selecione tags..."
-                  multiple
-                  class="w-full"
-                />
-              </UFormField>
-            </div>
-          </template>
-
           <template #schedule-body>
             <div class="space-y-5">
               <UCard>
@@ -583,7 +596,9 @@ onBeforeUnmount(() => {
                     Referência para sua agenda
                   </p>
                   <p class="text-sm text-muted">
-                    Defina um horário para o hábito aparecer como guia do seu dia. Isso ajuda a organizar a rotina sem transformar o hábito em compromisso rígido.
+                    Defina um horário para o hábito aparecer como guia do seu
+                    dia. Isso ajuda a organizar a rotina sem transformar o
+                    hábito em compromisso rígido.
                   </p>
                 </div>
               </UCard>
