@@ -322,8 +322,11 @@ function getHabitTypeIcon(habitType: HabitType) {
                 <UAvatar
                   :text="state.avatarEmoji || '🙂'"
                   alt="Avatar do hábito"
-                  size="2xl"
-                  class="size-24 shrink-0 ring ring-default text-[32px]"
+                  size="3xl"
+                  class="size-24 shrink-0 ring ring-default"
+                  :ui="{
+                    fallback: 'text-[28px] leading-none -translate-y-px'
+                  }"
                 />
               </button>
 
