@@ -867,20 +867,11 @@ onBeforeUnmount(() => {
   TO DO
 
   ========================
-  🎨 Interface / UX
-  ========================
-  
-  - Dentro do Forms, no lugar de ser por tabs, poderia ser por accordion, para facilitar a navegação entre as seções do formulário.
-
-  ========================
    🏷️ Organização / Estrutura
   ========================
 
   - Adicionar suporte a tags nos hábitos.
     Isso permitirá melhor organização, categorização e filtragem.
-
-  - Permitir seleção de um emoji como avatar do hábito.
-    Isso facilita identificação visual e personalização da lista de hábitos.
 
   ========================
   🚀 Onboarding
