@@ -324,9 +324,12 @@ function getHabitTypeIcon(habitType: HabitType) {
                 class="min-h-14 justify-between rounded-2xl border-default px-4 py-3 text-left"
               >
                 <div class="flex min-w-0 items-center gap-3">
-                  <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-elevated ring ring-default text-xl">
-                    {{ state.avatarEmoji || '🙂' }}
-                  </div>
+                  <UAvatar
+                    :text="state.avatarEmoji || '🙂'"
+                    alt="Avatar do hábito"
+                    size="lg"
+                    class="shrink-0 ring ring-default"
+                  />
 
                   <div class="min-w-0">
                     <p class="text-xs uppercase tracking-[0.12em] text-muted">
