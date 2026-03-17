@@ -292,7 +292,7 @@ function getHabitTypeIcon(habitType: HabitType) {
     :ui="{
       overlay: 'z-[200] bg-elevated/75',
       content: 'z-[210] w-[calc(100vw-2rem)] max-w-4xl overflow-visible',
-      body: 'px-6 py-5 sm:px-6 sm:py-5 pb-6',
+      body: 'px-6 pt-5 pb-8 sm:px-6 sm:pt-5 sm:pb-8',
       footer: 'border-t border-default px-6 py-4'
     }"
     @update:open="onClose"
