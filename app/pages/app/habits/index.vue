@@ -896,10 +896,6 @@ onBeforeUnmount(() => {
 
 ## 📱 Mobile / Responsividade
 
-- Corrigir comportamento do **menu no mobile**, que atualmente aparenta estar sempre fechado.
-
-- Corrigir problema onde **o fundo das páginas não está sendo exibido**.
-
 - Ajustar a interface de **hábitos no mobile**:
   - Falta espaço para empilhamento adequado dos itens.
 
