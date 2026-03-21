@@ -136,13 +136,6 @@ function getStreakMeta(habit: Habit) {
         </div>
 
         <div class="mt-1.5 flex flex-wrap items-center gap-1.5 sm:mt-1">
-          <UBadge
-            v-if="node.habit.identity"
-            :label="node.habit.identity.name"
-            variant="subtle"
-            color="primary"
-            size="sm"
-          />
           <UBadge variant="subtle" color="neutral" size="sm">
             <template #leading>
               <UIcon :name="FREQUENCY_META[node.habit.frequency].icon" class="size-3.5" />
