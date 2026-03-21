@@ -74,11 +74,19 @@ const reviewPeriod = computed(() => {
   const endDate = new Date(startDate)
   endDate.setDate(startDate.getDate() + 6)
 
-  const formatter = new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
+  const currentYear = new Date().getFullYear()
+  const shouldShowYear = startDate.getFullYear() !== currentYear || endDate.getFullYear() !== currentYear
+
+  const formatter = new Intl.DateTimeFormat('pt-BR', shouldShowYear
+    ? {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }
+    : {
+        day: '2-digit',
+        month: '2-digit'
+      })
 
   const diffMs = endDate.getTime() - startDate.getTime()
   const inclusiveDayCount = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1
