@@ -667,7 +667,7 @@ onBeforeUnmount(() => {
     </template>
 
     <template #body>
-      <div class="space-y-6">
+      <div class="space-y-6 pb-4">
         <!-- Tabs -->
         <div data-tour="habits-tabs">
           <UTabs
@@ -886,11 +886,6 @@ onBeforeUnmount(() => {
     5 Primeira ação
   Tempo total ideal: menos de 2 minutos
 
-  -->
-
-<!--
- # Backlog
-
 ---
 
 ## 📅 Revisão
@@ -906,72 +901,7 @@ onBeforeUnmount(() => {
 - Corrigir problema onde **o fundo das páginas não está sendo exibido**.
 
 - Ajustar a interface de **hábitos no mobile**:
-  - Checkbox está muito pequeno.
   - Falta espaço para empilhamento adequado dos itens.
-
----
-
-## 🎨 Interface / UX
-
-- Remover a **identidade do hábito na listagem principal**.
-  - O conteúdo é grande e ocupa muito espaço visual.
-  - Essa informação pode ser utilizada em:
-    - notificações
-    - página de detalhes do hábito
-    - explicações adicionais sobre o hábito.
-
----
-
-## 🪟 Modais
-
-- Ajustar o comportamento dos **modais**:
-  - Definir uma **altura máxima (`max-height`)**.
-  - Tornar o **conteúdo interno scrollável**.
-
-Objetivo:
-
-- evitar modais excessivamente altos
-- permitir que o usuário foque apenas no conteúdo interno.
-
-⚠️ Atenção especial para componentes internos como:
-
-- `select`
-- `dropdown`
-- `autocomplete`
-
-Esses componentes possuem comportamentos próprios e podem quebrar caso o modal tenha altura fixa.
-
----
-
-## 🖥️ Versão Desktop
-
-- Avaliar a possibilidade de disponibilizar a aplicação como **aplicativo desktop**.
-
-Plataformas possíveis:
-
-- Windows
-- Linux
-
-Objetivo:
-
-- melhorar experiência em telas maiores
-- adaptar layout para uso em desktop.
-
----
-
-## 🤖 Integração com Telegram
-
-Criar integração com Telegram para receber eventos importantes do sistema:
-
-- nova conta criada
-- conta deletada
-- nova assinatura
-- cancelamento de assinatura
-- recebimento de feedback
-
-Objetivo:
-
-- facilitar monitoramento do produto em tempo real.
 
 ---
 
