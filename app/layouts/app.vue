@@ -33,14 +33,14 @@ const links = [
         open.value = false
       }
     },
-    // {
-    //  label: 'Metas',
-    //  icon: 'i-lucide-target',
-    //  to: '/app/goals',
-    //  onSelect: () => {
-    //    open.value = false
-    //  }
-    // },
+    {
+      label: 'Metas',
+      icon: 'i-lucide-target',
+      to: '/app/goals',
+      onSelect: () => {
+        open.value = false
+      }
+    },
     // {
     //  label: 'Tarefas',
     //  icon: 'i-lucide-check-square',
