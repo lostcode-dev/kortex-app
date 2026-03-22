@@ -147,12 +147,14 @@ const statusFilterOptions = computed(() => [
         </template>
 
         <template #right>
-          <NotificationsButton />
-          <UButton
-            label="Nova meta"
-            icon="i-lucide-plus"
-            v-model="listStatusModel"
-          />
+          <div class="flex items-center gap-2">
+            <NotificationsButton />
+            <UButton
+              label="Nova meta"
+              icon="i-lucide-plus"
+              @click="createModalOpen = true"
+            />
+          </div>
         </template>
       </UDashboardNavbar>
     </template>
@@ -194,21 +196,21 @@ const statusFilterOptions = computed(() => [
               class="max-w-xs"
             />
             <USelect
-              v-model="listTimeCategory"
+              v-model="listTimeCategoryModel"
               :items="timeCategoryFilterOptions"
               value-key="value"
               placeholder="Prazo"
               class="min-w-32"
             />
             <USelect
-              v-model="listLifeCategory"
+              v-model="listLifeCategoryModel"
               :items="lifeCategoryFilterOptions"
               value-key="value"
               placeholder="Área"
               class="min-w-32"
             />
             <USelect
-              v-model="listStatus"
+              v-model="listStatusModel"
               :items="statusFilterOptions"
               value-key="value"
               placeholder="Status"

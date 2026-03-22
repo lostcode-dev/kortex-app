@@ -3,19 +3,18 @@ import { getQuery } from 'h3'
 import { getSupabaseAdminClient } from '../utils/supabase'
 import { requireAuthUser } from '../utils/require-auth'
 
-const querySchema = z.object({
-  limit: z.coerce.number().int().positive().max(100).default(25),
-  unreadOnly: z.preprocess((value) => {
-    if (value === undefined) return undefined
-    if (typeof value === 'boolean') return value
-    if (typeof value === 'string') {
-      const normalized = value.trim().toLowerCase()
-      if (['true', '1', 'yes', 'on'].includes(normalized)) return true
-      if (['false', '0', 'no', 'off'].includes(normalized)) return false
-    }
-    return value
-  }, z.boolean()).optional()
-})
+const limitSchema = z.coerce.number().int().positive().max(100)
+const unreadOnlySchema = z.preprocess((value) => {
+  if (value === undefined || value === null || value === '') return undefined
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase()
+    if (['true', '1', 'yes', 'on'].includes(normalized)) return true
+    if (['false', '0', 'no', 'off'].includes(normalized)) return false
+  }
+
+  return undefined
+}, z.boolean().optional())
 
 type NotificationRow = {
   id: number
@@ -32,18 +31,22 @@ type NotificationRow = {
   created_at: string
 }
 
+function getSingleQueryValue(value: unknown) {
+  return Array.isArray(value) ? value[0] : value
+}
+
 export default eventHandler(async (event) => {
   const user = await requireAuthUser(event)
 
   const query = getQuery(event)
-  const parsed = querySchema.safeParse(query)
-  if (!parsed.success) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Invalid query',
-      data: parsed.error.flatten()
-    })
-  }
+  const rawLimit = getSingleQueryValue(query.limit)
+  const rawUnreadOnly = getSingleQueryValue(query.unreadOnly)
+
+  const limitResult = limitSchema.safeParse(rawLimit)
+  const limit = limitResult.success ? limitResult.data : 25
+
+  const unreadOnlyResult = unreadOnlySchema.safeParse(rawUnreadOnly)
+  const unreadOnly = unreadOnlyResult.success ? unreadOnlyResult.data : undefined
 
   const supabase = getSupabaseAdminClient()
   let builder = supabase
@@ -51,9 +54,9 @@ export default eventHandler(async (event) => {
     .select('id,type,sender_name,sender_email,sender_avatar_url,body,link_path,channels,category,source,read_at,created_at')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
-    .limit(parsed.data.limit)
+    .limit(limit)
 
-  if (parsed.data.unreadOnly)
+  if (unreadOnly)
     builder = builder.is('read_at', null)
 
   const { data, error } = await builder.returns<NotificationRow[]>()
