@@ -11,7 +11,7 @@ const emit = defineEmits<{
   'archived': []
 }>()
 
-const { archiveGoal } = useGoals()
+const { archiveGoal } = useGoalActions()
 
 const loading = ref(false)
 

@@ -54,8 +54,10 @@ watch(
   (tab) => {
     if (tab === "active") {
       listStatus.value = GoalStatus.Active;
+      ensureLoaded(listFetchStatus, refreshList);
     } else if (tab === "all") {
       listStatus.value = "";
+      ensureLoaded(listFetchStatus, refreshList);
     }
     if (tab === "insights") {
       ensureLoaded(insightsStatus, refreshInsights);

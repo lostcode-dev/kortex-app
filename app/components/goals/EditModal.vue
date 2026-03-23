@@ -13,7 +13,7 @@ const emit = defineEmits<{
   'update:open': [value: boolean]
 }>()
 
-const { updateGoal, timeCategoryOptions, lifeCategoryOptions } = useGoals()
+const { updateGoal, timeCategoryOptions, lifeCategoryOptions } = useGoalActions()
 
 const schema = z.object({
   title: z.string().min(1, 'Título é obrigatório').max(200),

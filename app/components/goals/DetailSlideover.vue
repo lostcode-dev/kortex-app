@@ -14,7 +14,7 @@ const emit = defineEmits<{
   'updated': []
 }>()
 
-const { getLifeCategoryLabel, getTimeCategoryLabel, getStatusColor, getStatusLabel, completeGoal, createTask, updateTask, deleteTask, linkHabit, unlinkHabit } = useGoals()
+const { getLifeCategoryLabel, getTimeCategoryLabel, getStatusColor, getStatusLabel, completeGoal, createTask, updateTask, deleteTask, linkHabit, unlinkHabit } = useGoalActions()
 
 // ─── Local state for goal detail (refreshable) ──────────────────────────────
 const goalDetail = ref<Goal | null>(null)
