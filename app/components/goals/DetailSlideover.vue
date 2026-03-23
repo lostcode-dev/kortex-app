@@ -278,23 +278,7 @@ function getStatusIcon(status: GoalStatus): string {
         </div>
 
         <!-- Stats -->
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <UCard class="border-default/60 bg-default/30">
-            <div class="flex items-center gap-3">
-              <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <UIcon name="i-lucide-bar-chart-3" class="size-4" />
-              </div>
-              <div>
-                <p class="text-2xl font-semibold text-highlighted tabular-nums">
-                  {{ Math.round(progressValue) }}%
-                </p>
-                <p class="text-xs text-muted">
-                  Progresso geral
-                </p>
-              </div>
-            </div>
-          </UCard>
-
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <UCard class="border-default/60 bg-default/30">
             <div class="flex items-center gap-3">
               <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-success/10 text-success">
