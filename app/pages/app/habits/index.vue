@@ -927,4 +927,29 @@ https://documentation.onesignal.com/reference/rest-api-overview
 - Notificações de hábitos na api e notificação de revisão semanal.
 - Na api deve marcar como "freeze" os hábitos do dia anterior, quando no dia antecessor tiver marcação.
 
-  -->
+
+----
+
+- Quando marcar um hábito como feito, o carregamento deve ser por debaixo dos panos, sem bloquear a interface.
+- Também demora para marcar porque está esperando a resposta para atualizar, deve já marcar, se der erro desmarca e avisa.
+- Em Todos, pode remover a possibidade de esconder, nã otem necessidade.
+- Tem que resetar o modal quando fechar, porque quando abre de novo, tem os dados antigos lá, e isso pode confundir, principalmente se for um hábito diferente.
+- Deve ficar desabilitado os inputs quando clicko em salvar, para evitar que o usuário altere algo que não vá fazer efeito.
+- Em Metas, na listagem, seria uma boa exibir os hábitos que estão vinculados a meta.
+- Em Hábitos, na listagem, encontrar uma forma de agrupar por meta, ou pelo menos exibir um indicador de quais hábitos estão vinculados a metas.
+- Permitir todos os emojis, categorizados por tipo, para usar como ícones dos hábitos. Talvez usar uma biblioteca de emojis pronta, para facilitar a busca e a navegação.
+- Um Hábito só pode estar vinculado com uma meta.
+- Exibir como se estivesse excluido o hábito vinculado a meta, quando o hábito for excluído.
+- Revisar os Detalhes de Hábito.
+- Remover o Btn de Empilhar, já que o gerenciamento está como Drag & Drop.
+- Nos select que tem hábitos, deve exibir em ordem alfabética, para facilitar a busca.
+- Criar um Select com busca, para facilitar a busca.
+- Em Todos, com exceção dos empilhamento, o primeiro nível tem que estar em ordem alfabética, para facilitar a busca, e os subníveis podem ser organizados por drag & drop, para manter a flexibilidade de organização.
+- Revisão semanal deve usar o mesmo editor de texto rico para as anotações, que tem na criação e edição de hábitos, para manter a consistência e permitir formatação nas anotações.
+- Quando crio uma meta não está exibindo na hora, tenho que dar reload na tela.
+- Posso ter metas com data de inicio e data de fim.
+- Posso ter uma meta sem data de conclusão, por exemplo, "Priorizar minha saúde física"
+- Progresso deve ser revisto, em Meta, para considerar mais fatores, como data, hábitos, e outras coisas.
+
+
+-->
