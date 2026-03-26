@@ -39,11 +39,15 @@ const linkSearchQuery = ref('')
 
 const dirty = computed(() => {
   if (!noteDetail.value) return false
+
+  const currentTagIds = [...editTagIds.value].sort()
+  const initialTagIds = (noteDetail.value.tags ?? []).map(t => t.id).sort()
+
   return (
     editTitle.value !== noteDetail.value.title
     || editContent.value !== (noteDetail.value.content ?? '')
     || editType.value !== noteDetail.value.type
-    || JSON.stringify(editTagIds.value.sort()) !== JSON.stringify((noteDetail.value.tags ?? []).map(t => t.id).sort())
+    || JSON.stringify(currentTagIds) !== JSON.stringify(initialTagIds)
   )
 })
 

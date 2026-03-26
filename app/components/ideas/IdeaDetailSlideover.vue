@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { IdeaDetail, IdeaList, IdeaTag, IdeaPriority } from '~/types/ideas'
-import { IDEA_PRIORITY_META, IDEA_STATUS_META, IdeaStatus } from '~/types/ideas'
-import { z } from 'zod'
+import { IDEA_STATUS_META, IdeaStatus } from '~/types/ideas'
 
 const props = defineProps<{
   ideaId: string | null
@@ -167,7 +166,9 @@ let saveTimer: ReturnType<typeof setTimeout> | null = null
 
 function scheduleSave(): void {
   if (saveTimer) clearTimeout(saveTimer)
-  saveTimer = setTimeout(() => { save() }, 1500)
+  saveTimer = setTimeout(() => {
+    save()
+  }, 1500)
 }
 
 watch([editTitle, editDescription, editStatus, editPriority, editListId, editDueDate, editTagIds], () => {

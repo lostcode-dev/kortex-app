@@ -20,6 +20,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  'toggle-node': []
   'select': [habitId: string]
   'edit': [habit: Habit]
   'stack': [habit: Habit]
@@ -87,7 +88,7 @@ function getStreakMeta(habit: Habit) {
           v-if="node.children.length"
           type="button"
           class="inline-flex size-7 items-center justify-center rounded-md text-muted transition hover:bg-muted/60 hover:text-highlighted"
-          @click.stop="stat.open = !stat.open"
+          @click.stop="emit('toggle-node')"
         >
           <UIcon :name="stat.open ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="size-4" />
         </button>

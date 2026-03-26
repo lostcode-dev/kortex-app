@@ -15,7 +15,6 @@ const {
   lists,
   tags,
   page,
-  searchQuery,
   filters,
   refreshIdeas,
   updateIdeaStatus,

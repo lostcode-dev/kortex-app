@@ -51,7 +51,7 @@ watch(
     const width = containerRef.value?.clientWidth ?? 800
     const height = containerRef.value?.clientHeight ?? 600
 
-    simNodes.value = data.nodes.map((n, i) => ({
+    simNodes.value = data.nodes.map(n => ({
       ...n,
       x: width / 2 + (Math.random() - 0.5) * width * 0.6,
       y: height / 2 + (Math.random() - 0.5) * height * 0.6,

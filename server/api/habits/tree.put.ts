@@ -111,7 +111,6 @@ export default eventHandler(async (event) => {
 
   const expectedPairs = new Set(stackPairs.map(pair => `${pair.triggerHabitId}:${pair.newHabitId}`))
   const activeStacks = (existingStacks ?? []).filter(stack => stack.archived_at === null)
-  const archivedStacks = (existingStacks ?? []).filter(stack => stack.archived_at !== null)
 
   const stacksToArchive = activeStacks.filter((stack) => {
     const key = `${String(stack.trigger_habit_id)}:${String(stack.new_habit_id)}`

@@ -34,6 +34,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  'toggle-node': []
   'toggle': [habitId: string, completed: boolean]
   'select': [habitId: string]
   'open-note': [habitId: string, completed: boolean]
@@ -194,7 +195,7 @@ function onRowKeydown(event: KeyboardEvent) {
           v-if="node.children.length"
           type="button"
           class="hidden sm:inline-flex size-6 items-center justify-center rounded-md text-muted transition hover:bg-muted/60 hover:text-highlighted"
-          @click.stop="stat.open = !stat.open"
+          @click.stop="emit('toggle-node')"
         >
           <UIcon :name="stat.open ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="size-3.5" />
         </button>

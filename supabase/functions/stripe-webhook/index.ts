@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     let event: Stripe.Event
     try {
       event = stripe.webhooks.constructEvent(payload, signature, env.STRIPE_WEBHOOK_SECRET)
-    } catch (err) {
+    } catch {
       return new Response('Invalid signature', { status: 400 })
     }
 
@@ -305,7 +305,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ received: true }), {
       headers: { 'content-type': 'application/json' }
     })
-  } catch (err) {
+  } catch {
     return new Response('Internal error', { status: 500 })
   }
 })

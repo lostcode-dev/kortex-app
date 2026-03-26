@@ -82,7 +82,7 @@ const isMobile = useMediaQuery('(max-width: 767px)')
 const treeIndent = computed(() => (isMobile.value ? 16 : 24))
 const treeLineOffset = computed(() => (isMobile.value ? 8 : 10))
 
-function nodeKeyFn(stat: any) {
+function nodeKeyFn(stat: TreeStat) {
   return stat.data.id
 }
 
@@ -283,6 +283,7 @@ function onSelectHabit(habitId: string) {
             <HabitsTodayTreeRow
               :node="node"
               :stat="stat"
+              @toggle-node="stat.open = !stat.open"
               @toggle="onToggleHabit"
               @select="onSelectHabit"
               @open-note="openNoteModal"

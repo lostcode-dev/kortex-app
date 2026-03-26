@@ -24,8 +24,9 @@ watch(isNotificationsSlideoverOpen, async (open) => {
     return
   try {
     await notifications.ensureReady()
-  } catch (error: any) {
-    const message = error?.data?.statusMessage || error?.statusMessage || 'Não foi possível carregar as notificações'
+  } catch (error: unknown) {
+    const apiError = error as { data?: { statusMessage?: string }, statusMessage?: string }
+    const message = apiError?.data?.statusMessage || apiError?.statusMessage || 'Não foi possível carregar as notificações'
     toast.add({ title: 'Erro', description: message, color: 'error' })
   }
 })
@@ -33,8 +34,9 @@ watch(isNotificationsSlideoverOpen, async (open) => {
 async function markAllRead() {
   try {
     await notifications.markAllRead()
-  } catch (error: any) {
-    const message = error?.data?.statusMessage || error?.statusMessage || 'Não foi possível marcar como lidas'
+  } catch (error: unknown) {
+    const apiError = error as { data?: { statusMessage?: string }, statusMessage?: string }
+    const message = apiError?.data?.statusMessage || apiError?.statusMessage || 'Não foi possível marcar como lidas'
     toast.add({ title: 'Erro', description: message, color: 'error' })
   }
 }

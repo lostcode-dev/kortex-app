@@ -8,7 +8,21 @@ const querySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(50).optional()
 })
 
-function mapReflection(row: any) {
+type ReflectionRow = {
+  id: string
+  userId?: string
+  user_id?: string
+  weekKey?: string
+  week_key?: string
+  wins?: string | null
+  improvements?: string | null
+  createdAt?: string
+  created_at?: string
+  updatedAt?: string
+  updated_at?: string
+} | null
+
+function mapReflection(row: ReflectionRow) {
   if (!row) return row
   return {
     id: row.id,

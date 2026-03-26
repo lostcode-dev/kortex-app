@@ -40,7 +40,7 @@ const treeData = ref<HabitSortableTreeNode[]>([])
 const collapsedIds = ref<string[]>([])
 const virtualizationEnabled = computed(() => props.habits.length > 12)
 
-function nodeKeyFn(stat: any) {
+function nodeKeyFn(stat: TreeStat) {
   return stat.data.id
 }
 
@@ -139,26 +139,6 @@ function serializeTree(nodes: HabitSortableTreeNode[]): HabitTreeSyncNode[] {
   }))
 }
 
-function expandAll() {
-  collapsedIds.value = []
-  treeRef.value?.openAll()
-}
-
-function collapseAll() {
-  const ids: string[] = []
-
-  function collect(nodes: HabitSortableTreeNode[]) {
-    for (const node of nodes) {
-      ids.push(node.habit.id)
-      collect(node.children)
-    }
-  }
-
-  collect(treeData.value)
-  collapsedIds.value = ids
-  treeRef.value?.closeAll()
-}
-
 function onTreeOpened(stat: TreeStat) {
   collapsedIds.value = collapsedIds.value.filter(id => id !== stat.data.habit.id)
 }
@@ -240,6 +220,7 @@ function onArchiveHabit(habit: Habit) {
                 :node="node"
                 :stat="stat"
                 :stacks="stacks"
+                @toggle-node="stat.open = !stat.open"
                 @select="onSelectHabit"
                 @edit="onEditHabit"
                 @stack="onStackHabit"

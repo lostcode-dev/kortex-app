@@ -47,11 +47,9 @@ export default eventHandler(async (event) => {
   }
 
   const stripe = getStripe()
-  const updatedResponse = await stripe.subscriptions.update(data.stripe_subscription_id, {
+  const updated = await stripe.subscriptions.update(data.stripe_subscription_id, {
     cancel_at_period_end: true
   })
-
-  const updated = (updatedResponse as any).data ?? updatedResponse
 
   return { ok: true, cancelAtPeriodEnd: Boolean(updated.cancel_at_period_end) }
 })

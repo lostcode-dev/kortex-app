@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Idea } from '~/types/ideas'
-import { IDEA_PRIORITY_META, IDEA_STATUS_META, IdeaPriority, IdeaStatus } from '~/types/ideas'
+import { IDEA_STATUS_META, IdeaStatus } from '~/types/ideas'
 
-const props = defineProps<{
+defineProps<{
   ideas: Idea[]
   total: number
   page: number
@@ -28,29 +28,10 @@ function isOverdue(dueDate: string | null, status: string): boolean {
   return new Date(dueDate) < new Date()
 }
 
-const statusColors: Record<string, string> = {
-  [IdeaStatus.Backlog]: 'bg-neutral-100 dark:bg-neutral-800',
-  [IdeaStatus.Todo]: 'bg-blue-50 dark:bg-blue-950/30',
-  [IdeaStatus.InProgress]: 'bg-amber-50 dark:bg-amber-950/30',
-  [IdeaStatus.Done]: 'bg-green-50 dark:bg-green-950/30',
-  [IdeaStatus.Archived]: 'bg-neutral-50 dark:bg-neutral-900'
-}
-
 async function onDelete(e: Event, id: string): Promise<void> {
   e.stopPropagation()
   await deleteIdea(id)
 }
-
-function cyclePriority(e: Event, idea: Idea): void {
-  e.stopPropagation()
-  // Cycle: null → low → medium → high → critical → null
-  const order = [null, IdeaPriority.Low, IdeaPriority.Medium, IdeaPriority.High, IdeaPriority.Critical]
-  const idx = order.indexOf(idea.priority as IdeaPriority | null)
-  const next = order[(idx + 1) % order.length] ?? null
-  emit('select', { ...idea, priority: next })
-}
-
-const pageCount = computed(() => Math.ceil(props.total / 30))
 </script>
 
 <template>

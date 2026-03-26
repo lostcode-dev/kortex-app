@@ -45,9 +45,6 @@ const sortedIdentities = computed(() =>
   )
 )
 
-const headerDescription
-  = 'Crie identidades para conectar seus habitos a pessoa que voce quer se tornar.'
-
 if (identitiesStatus.value === 'idle') {
   await refreshIdentities()
 }

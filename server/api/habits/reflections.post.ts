@@ -8,7 +8,21 @@ const bodySchema = z.object({
   improvements: z.string().max(2000).optional()
 })
 
-function mapReflection(row: any) {
+type ReflectionRow = {
+  id: string
+  userId?: string
+  user_id?: string
+  weekKey?: string
+  week_key?: string
+  wins?: string | null
+  improvements?: string | null
+  createdAt?: string
+  created_at?: string
+  updatedAt?: string
+  updated_at?: string
+} | null
+
+function mapReflection(row: ReflectionRow) {
   if (!row) return row
   return {
     id: row.id,
